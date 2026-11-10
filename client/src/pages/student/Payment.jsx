@@ -1,56 +1,48 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaCreditCard, FaUniversity, FaMobileAlt, FaLock, FaCheckCircle, FaChevronLeft, FaRupeeSign, FaDownload, FaFilePdf, FaArrowRight, FaQrcode, FaShieldAlt } from 'react-icons/fa';
+import { FaCreditCard, FaUniversity, FaMobileAlt, FaLock, FaCheckCircle, FaChevronLeft, FaFilePdf, FaArrowRight, FaShieldAlt } from 'react-icons/fa';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import AuthContext from '../../context/AuthContext';
+import { API_URL } from '../../config';
+import { feesFor, formatCurrency } from '../../utils/fees';
 
-// ── Dynamic fee calculation (same as ApplicationStatus) ──
-const SEMESTER_FEE_MAP = {
-    'computer science': 30000,
-    'commerce': 22000,
-    'electronics': 25000,
-    'maths': 22000,
-    'mathematics': 22000,
-    'language': 18000,
-    'english literature': 22000,
-    'management': 60000,
-    'science': 25000,
-};
-const ADMISSION_FEE = 5000;
-const ONE_TIME_FEE = 10000;
+const COLLEGE_NAME = 'RVS College of Arts and Science';
+const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
-const getSemesterFee = (course = '', department = '') => {
-    const combined = `${course} ${department}`.toLowerCase();
-    if (combined.includes('master') || combined.includes('m.sc') || combined.includes('m.a') || combined.includes('m.com') || combined.includes('mba') || combined.includes('mca') || combined.includes('pg')) return 35000;
-    for (const [key, fee] of Object.entries(SEMESTER_FEE_MAP)) { if (combined.includes(key)) return fee; }
-    return 25000;
-};
-
-const computeFees = (app) => {
-    const semesterFee = getSemesterFee(app?.course, app?.department);
-    const total = ADMISSION_FEE + ONE_TIME_FEE + semesterFee;
-    return { admissionFee: ADMISSION_FEE, oneTimeFee: ONE_TIME_FEE, semesterFee, total };
-};
-
-const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+// Load Razorpay Checkout once
+const loadRazorpay = () =>
+    new Promise((resolve) => {
+        if (window.Razorpay) return resolve(true);
+        const existing = document.querySelector(`script[src="${RAZORPAY_SCRIPT}"]`);
+        const script = existing || document.createElement('script');
+        script.addEventListener('load', () => resolve(true));
+        script.addEventListener('error', () => resolve(false));
+        if (!existing) {
+            script.src = RAZORPAY_SCRIPT;
+            script.async = true;
+            document.body.appendChild(script);
+        }
+    });
 
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { app, fees: passedFees } = location.state || {};
-    // Use fees from navigation state, or compute dynamically as fallback
-    const fees = passedFees || (app ? computeFees(app) : { admissionFee: 5000, oneTimeFee: 10000, semesterFee: 25000, total: 40000 });
-    const [paymentMethod, setPaymentMethod] = useState('card');
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [isPaid, setIsPaid] = useState(app?.paymentStatus === 'Paid');
-    const [transactionId, setTransactionId] = useState(app?._id ? `TXN${app._id.slice(-6).toUpperCase()}${Math.floor(Math.random() * 1000)}` : '');
+    const { authConfig } = useContext(AuthContext);
+    const { app } = location.state || {};
+    const fees = feesFor(app); // fees stored on the application by the server
 
-    // Form States
-    const [cardDetails, setCardDetails] = useState({ number: '', name: '', expiry: '', cvv: '' });
-    const [upiId, setUpiId] = useState('');
-    const [netBanking, setNetBanking] = useState({ bank: '', username: '', password: '' });
+    const [payConfig, setPayConfig] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [paidApp, setPaidApp] = useState(app?.paymentStatus === 'Paid' ? app : null);
+
+    useEffect(() => {
+        axios.get(`${API_URL}/api/payments/config`)
+            .then(({ data }) => setPayConfig(data))
+            .catch(() => setPayConfig({ enabled: false, demoPayment: false }));
+    }, []);
 
     if (!app) {
         return (
@@ -61,57 +53,71 @@ const Payment = () => {
         );
     }
 
-    const validateForm = () => {
-        if (paymentMethod === 'card') {
-            return cardDetails.number.length === 16 && cardDetails.name && cardDetails.expiry.length === 5 && cardDetails.cvv.length === 3;
-        }
-        if (paymentMethod === 'upi') {
-            return upiId.includes('@');
-        }
-        if (paymentMethod === 'net') {
-            return netBanking.bank && netBanking.username && netBanking.password;
-        }
-        return false;
+    const onPaid = (updated) => {
+        setPaidApp(updated);
+        setIsProcessing(false);
+        toast.success(`Admission fee of ${formatCurrency(updated.paidAmount || fees.total)} paid successfully!`, { position: 'top-center', autoClose: 4000 });
     };
 
-    const handlePayment = async (e) => {
-        e.preventDefault();
-        if (!validateForm()) {
-            toast.error("Please enter valid details for the selected payment method.");
-            return;
-        }
+    const payWithRazorpay = async () => {
+        const loaded = await loadRazorpay();
+        if (!loaded) throw new Error('Could not load the payment window. Please check your internet connection.');
 
+        const { data: order } = await axios.post(`${API_URL}/api/payments/order`, { applicationId: app._id }, authConfig());
+
+        const checkout = new window.Razorpay({
+            key: order.keyId,
+            amount: order.amount,
+            currency: order.currency,
+            order_id: order.orderId,
+            name: COLLEGE_NAME,
+            description: order.description,
+            prefill: order.prefill,
+            notes: { applicationId: app._id },
+            theme: { color: '#991b1b' },
+            handler: async (response) => {
+                try {
+                    const { data } = await axios.post(`${API_URL}/api/payments/verify`, { applicationId: app._id, ...response }, authConfig());
+                    onPaid(data);
+                } catch (error) {
+                    setIsProcessing(false);
+                    toast.error(
+                        `${error.response?.data?.message || 'Payment could not be verified'}. If money was debited, contact the admission office with payment ID ${response.razorpay_payment_id}.`,
+                        { autoClose: false }
+                    );
+                }
+            },
+            modal: { ondismiss: () => setIsProcessing(false) },
+        });
+        checkout.on('payment.failed', (response) => {
+            toast.error(response.error?.description || 'Payment failed. Please try again.');
+        });
+        checkout.open();
+    };
+
+    // Development only (no Razorpay keys on the server)
+    const payDemo = async () => {
+        const { data } = await axios.put(`${API_URL}/api/applications/${app._id}/pay`, { paymentMethod: 'DEMO' }, authConfig());
+        onPaid(data);
+    };
+
+    const handlePay = async () => {
+        if (isProcessing) return;
         setIsProcessing(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-
-            const fakeTxnId = `RVS${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-            setTransactionId(fakeTxnId);
-
-            await axios.put(`http://localhost:5000/api/applications/${app._id}/pay`, {
-                paymentMethod: paymentMethod.toUpperCase()
-            }, config);
-
-            // Simulate Banking Processing
-            setTimeout(() => {
-                setIsProcessing(false);
-                setIsPaid(true);
-                toast.success(`Admission Fee of ${formatCurrency(fees.total)} Paid Successfully via ${paymentMethod.toUpperCase()}!`, {
-                    position: "top-center",
-                    autoClose: 3000,
-                    theme: "colored",
-                });
-            }, 2500);
+            if (payConfig?.enabled) await payWithRazorpay();
+            else if (payConfig?.demoPayment) await payDemo();
+            else throw new Error('Online payment is not available right now. Please contact the admission office.');
         } catch (error) {
             setIsProcessing(false);
-            toast.error(error.response?.data?.message || 'Payment confirmation failed');
+            toast.error(error.response?.data?.message || error.message || 'Could not start the payment');
         }
     };
+
+    const receipt = paidApp || app;
+    const amountPaid = receipt.paidAmount || fees.total;
+    const paidOn = receipt.paidAt ? new Date(receipt.paidAt) : new Date();
+    const paymentRef = receipt.razorpayPaymentId || `APP-${String(app._id).slice(-8).toUpperCase()}`;
 
     const downloadPDF = () => {
         const doc = new jsPDF();
@@ -124,20 +130,20 @@ const Payment = () => {
         autoTable(doc, {
             startY: 60,
             body: [
-                ["Student Name", app.studentName],
-                ["Email Address", app.email],
-                ["Contact Number", app.contactNumber],
-                ["Date of Birth", new Date(app.dob).toLocaleDateString()],
-                ["Father's Name", app.fatherName],
-                ["Mother's Name", app.motherName],
-                ["Aadhar Number", app.aadharNumber],
+                ["Student Name", receipt.studentName],
+                ["Email Address", receipt.email],
+                ["Contact Number", receipt.contactNumber],
+                ["Date of Birth", new Date(receipt.dob).toLocaleDateString('en-IN')],
+                ["Father's Name", receipt.fatherName],
+                ["Mother's Name", receipt.motherName],
+                ["Aadhar Number", receipt.aadharNumber],
             ],
             theme: 'grid', headStyles: { fillColor: [139, 0, 0] }, styles: { fontSize: 10 }
         });
         doc.text("ACADEMIC DETAILS", 14, doc.lastAutoTable.finalY + 15);
         autoTable(doc, {
             startY: doc.lastAutoTable.finalY + 20,
-            body: [["School Name", app.schoolName], ["12th Group", app.twelfthGroup], ["12th Mark", app.twelfthMark]],
+            body: [["School Name", receipt.schoolName], ["12th Group", receipt.twelfthGroup], ["12th Mark", `${receipt.twelfthMark}%`]],
             theme: 'grid', headStyles: { fillColor: [139, 0, 0] }, styles: { fontSize: 10 }
         });
         doc.text("FEE BREAKDOWN", 14, doc.lastAutoTable.finalY + 15);
@@ -146,7 +152,7 @@ const Payment = () => {
             body: [
                 ["Admission Fees", formatCurrency(fees.admissionFee)],
                 ["One Time Fees", formatCurrency(fees.oneTimeFee)],
-                ["Semester Fees (" + app.course + ")", formatCurrency(fees.semesterFee)],
+                ["Semester Fees (" + receipt.course + ")", formatCurrency(fees.semesterFee)],
                 ["Total Fees", formatCurrency(fees.total)],
             ],
             theme: 'grid', headStyles: { fillColor: [139, 0, 0] }, styles: { fontSize: 10 }
@@ -155,31 +161,33 @@ const Payment = () => {
         autoTable(doc, {
             startY: doc.lastAutoTable.finalY + 20,
             body: [
-                ["Department", app.department],
-                ["Course Applied", app.course],
-                ["Application ID", app._id.toUpperCase()],
-                ["Amount Paid", formatCurrency(fees.total)],
-                ["Transaction ID", transactionId],
-                ["Payment Date", new Date().toLocaleDateString()],
-                ["Payment Status", "SUCCESSFUL"],
+                ["Department", receipt.department],
+                ["Course Applied", receipt.course],
+                ["Application ID", String(receipt._id).toUpperCase()],
+                ["Amount Paid", formatCurrency(amountPaid)],
+                ["Payment ID", paymentRef],
+                ["Payment Method", receipt.paymentMethod || '-'],
+                ["Payment Date", paidOn.toLocaleDateString('en-IN')],
+                ["Payment Status", "PAID"],
             ],
             theme: 'grid', headStyles: { fillColor: [139, 0, 0] }, styles: { fontSize: 10 }
         });
         doc.setFontSize(10); doc.setFont("helvetica", "italic");
-        doc.text("Thank you for applying to RVS College of Arts & Science.", 105, doc.lastAutoTable.finalY + 30, { align: "center" });
-        doc.save(`Application_${app.studentName.replace(/\s+/g, '_')}.pdf`);
+        doc.text("This is a computer-generated receipt and does not require a signature.", 105, doc.lastAutoTable.finalY + 20, { align: "center" });
+        doc.text("Thank you for applying to RVS College of Arts & Science.", 105, doc.lastAutoTable.finalY + 28, { align: "center" });
+        doc.save(`Application_${String(receipt.studentName).replace(/\s+/g, '_')}.pdf`);
     };
 
     return (
         <div className="bg-[#FAF9F6] min-h-screen pb-20 pt-10 px-4 font-sans">
             <div className="container mx-auto max-w-6xl">
-                {!isPaid ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {!paidApp ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
                         {/* Left: Summary */}
                         <div className="lg:col-span-4 space-y-6">
-                            <button onClick={() => navigate(-1)} className="flex items-center text-[#8B0000] font-black uppercase tracking-widest text-[10px] mb-4 hover:translate-x-1 transition-all"><FaChevronLeft className="mr-2" /> Back</button>
-                            <div className="bg-[#8B0000] rounded-[30px] p-8 text-white shadow-2xl relative overflow-hidden">
-                                <h2 className="text-2xl font-black italic uppercase italic mb-8">Billing Summary</h2>
+                            <button onClick={() => navigate(-1)} className="flex items-center text-[#8B0000] font-black uppercase tracking-widest text-[10px] mb-4 hover:translate-x-1 transition-all bg-transparent border-none cursor-pointer"><FaChevronLeft className="mr-2" /> Back</button>
+                            <div className="bg-[#8B0000] rounded-[30px] p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden">
+                                <h2 className="text-2xl font-black italic uppercase mb-8">Billing Summary</h2>
                                 <div className="space-y-4 border-t border-white/10 pt-6">
                                     <p className="text-[10px] font-black text-red-200 uppercase tracking-widest leading-none">Candidate Detail</p>
                                     <p className="text-lg font-black truncate text-white uppercase italic">{app.studentName}</p>
@@ -194,143 +202,99 @@ const Payment = () => {
                                             <p className="text-2xl font-black">{formatCurrency(fees.total)}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center text-[10px] font-black text-red-100 uppercase tracking-tighter opacity-80"><FaShieldAlt className="mr-2" /> PCI DSS COMPLIANT GATEWAY</div>
+                                    <div className="flex items-center text-[10px] font-black text-red-100 uppercase tracking-tighter opacity-80"><FaShieldAlt className="mr-2" /> Payments processed by Razorpay</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right: Payment Interactive Area */}
-                        <form onSubmit={handlePayment} className="lg:col-span-8 bg-white rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12">
-                            <h3 className="text-xl font-black text-gray-800 uppercase italic mb-10 border-l-8 border-[#8B0000] pl-6">Secure Payment Terminal</h3>
+                        {/* Right: Payment */}
+                        <div className="lg:col-span-8 bg-white rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12">
+                            <h3 className="text-xl font-black text-gray-800 uppercase italic mb-8 border-l-8 border-[#8B0000] pl-6">Secure Online Payment</h3>
 
-                            {/* Method Selection Tabs */}
+                            {payConfig?.testMode && (
+                                <div className="mb-8 p-4 rounded-2xl bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs font-bold">
+                                    TEST MODE: no real money is charged. Use Razorpay test payment details (for example UPI ID <code>success@razorpay</code>).
+                                </div>
+                            )}
+                            {payConfig && !payConfig.enabled && payConfig.demoPayment && (
+                                <div className="mb-8 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold">
+                                    DEVELOPMENT DEMO: Razorpay keys are not set on the server, so this payment is simulated.
+                                </div>
+                            )}
+
+                            <p className="text-sm text-gray-600 font-medium mb-6">
+                                Click the button below to open the Razorpay payment window. You can pay with any of these methods:
+                            </p>
                             <div className="flex flex-wrap gap-4 mb-10">
                                 {[
-                                    { id: 'card', label: 'Credit/Debit Card', icon: <FaCreditCard /> },
-                                    { id: 'upi', label: 'UPI / GPay / QR', icon: <FaMobileAlt /> },
-                                    { id: 'net', label: 'Net Banking', icon: <FaUniversity /> }
-                                ].map(m => (
-                                    <button
-                                        key={m.id} type="button"
-                                        onClick={() => setPaymentMethod(m.id)}
-                                        className={`flex items-center px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${paymentMethod === m.id ? 'bg-[#8B0000] text-white shadow-xl scale-105' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
-                                    >
-                                        <span className="mr-3 text-lg">{m.icon}</span> {m.label}
-                                    </button>
+                                    { label: 'Credit / Debit Card', icon: <FaCreditCard /> },
+                                    { label: 'UPI / GPay / PhonePe', icon: <FaMobileAlt /> },
+                                    { label: 'Net Banking', icon: <FaUniversity /> },
+                                ].map((m) => (
+                                    <span key={m.label} className="flex items-center px-5 py-3 rounded-2xl bg-gray-50 text-gray-600 font-black uppercase text-[10px] tracking-widest">
+                                        <span className="mr-3 text-lg text-[#8B0000]">{m.icon}</span> {m.label}
+                                    </span>
                                 ))}
                             </div>
 
-                            {/* Dynamic Forms */}
-                            <div className="min-h-[300px] animate-fadeIn">
-                                {paymentMethod === 'card' && (
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Card Holder Name</label>
-                                                <input type="text" placeholder="AS APPEARS ON CARD" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold uppercase" value={cardDetails.name} onChange={e => setCardDetails({ ...cardDetails, name: e.target.value.toUpperCase() })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Card Number (16 Digits)</label>
-                                                <input type="text" maxLength="16" placeholder="XXXX XXXX XXXX XXXX" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={cardDetails.number} onChange={e => setCardDetails({ ...cardDetails, number: e.target.value.replace(/\D/g, '') })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Expiry (MM/YY)</label>
-                                                <input type="text" maxLength="5" placeholder="MM/YY" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={cardDetails.expiry} onChange={e => setCardDetails({ ...cardDetails, expiry: e.target.value })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">CVV</label>
-                                                <input type="password" maxLength="3" placeholder="***" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={cardDetails.cvv} onChange={e => setCardDetails({ ...cardDetails, cvv: e.target.value.replace(/\D/g, '') })} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {paymentMethod === 'upi' && (
-                                    <div className="flex flex-col md:flex-row items-center gap-10">
-                                        <div className="bg-gray-100 p-6 rounded-3xl border-2 border-dashed border-gray-300">
-                                            <FaQrcode size={120} className="text-gray-400" />
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-4 text-center">Scan to Pay</p>
-                                        </div>
-                                        <div className="flex-grow space-y-4 w-full">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Enter VPA / UPI ID</label>
-                                            <input type="text" placeholder="example@oksbi" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={upiId} onChange={e => setUpiId(e.target.value)} />
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase italic tracking-tighter">Enter a valid UPI ID (e.g. name@bank)</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {paymentMethod === 'net' && (
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Your Bank</label>
-                                            <select className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={netBanking.bank} onChange={e => setNetBanking({ ...netBanking, bank: e.target.value })}>
-                                                <option value="">CHOOSE FROM LIST</option>
-                                                <option value="sbi">STATE BANK OF INDIA</option>
-                                                <option value="hdfc">HDFC BANK</option>
-                                                <option value="icici">ICICI BANK</option>
-                                                <option value="axis">AXIS BANK</option>
-                                            </select>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Netbanking Username</label>
-                                                <input type="text" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={netBanking.username} onChange={e => setNetBanking({ ...netBanking, username: e.target.value })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Secret Password</label>
-                                                <input type="password" title="SecurePasswordField" className="w-full bg-gray-50 border-2 border-transparent p-4 rounded-2xl focus:border-[#8B0000] outline-none font-bold" value={netBanking.password} onChange={e => setNetBanking({ ...netBanking, password: e.target.value })} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <ul className="text-xs text-gray-500 font-medium space-y-2 mb-10 list-disc pl-5">
+                                <li>Do not close or refresh this page until you see "Payment Successful".</li>
+                                <li>Your card, UPI and bank details are entered only in the Razorpay window; the college never sees them.</li>
+                                <li>If money is debited but this page shows an error, contact the admission office with your payment ID.</li>
+                            </ul>
 
                             <button
-                                type="submit"
-                                disabled={isProcessing || !validateForm()}
-                                className={`w-full mt-10 p-5 rounded-full text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all flex items-center justify-center ${isProcessing ? 'bg-gray-400' : (validateForm() ? 'bg-[#8B0000] text-white hover:bg-black transform active:scale-95' : 'bg-gray-100 text-gray-300 cursor-not-allowed')}`}
+                                type="button"
+                                onClick={handlePay}
+                                disabled={isProcessing || !payConfig || (!payConfig.enabled && !payConfig.demoPayment)}
+                                className={`w-full p-5 rounded-full text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all flex items-center justify-center border-none ${isProcessing || !payConfig ? 'bg-gray-400 text-white cursor-wait' : 'bg-[#8B0000] text-white hover:bg-black transform active:scale-95 cursor-pointer disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed'}`}
                             >
                                 {isProcessing ? (
-                                    <><div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin mr-3"></div> BANKING AUTHORIZATION IN PROGRESS...</>
-                                ) : `VALIDATE & AUTHORIZE ${formatCurrency(fees.total)}`}
+                                    <><span className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin mr-3"></span> PAYMENT IN PROGRESS...</>
+                                ) : (
+                                    <><FaLock className="mr-3" /> PAY {formatCurrency(fees.total)} SECURELY</>
+                                )}
                             </button>
-                        </form>
+                            {payConfig && !payConfig.enabled && !payConfig.demoPayment && (
+                                <p className="mt-4 text-center text-xs font-bold text-red-600">Online payment is not available right now. Please contact the admission office.</p>
+                            )}
+                        </div>
                     </div>
                 ) : (
-                    /* Success Terminal View */
+                    /* Success View */
                     <div className="max-w-4xl mx-auto animate-fadeIn">
-                        <div className="bg-white rounded-[50px] shadow-2xl overflow-hidden border border-gray-100">
-                            <div className="bg-green-600 p-16 text-center text-white relative">
-                                <FaCheckCircle className="mx-auto text-9xl mb-6 animate-scaleIn" />
-                                <h1 className="text-5xl font-black italic uppercase tracking-tighter">Transaction Verified</h1>
-                                <p className="mt-4 text-green-100 font-black uppercase tracking-widest text-[10px]">Reference: {transactionId}</p>
+                        <div className="bg-white rounded-3xl md:rounded-[50px] shadow-2xl overflow-hidden border border-gray-100">
+                            <div className="bg-green-600 p-6 sm:p-10 md:p-16 text-center text-white relative">
+                                <FaCheckCircle className="mx-auto text-6xl md:text-9xl mb-6 animate-scaleIn" />
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black italic uppercase tracking-tighter">Payment Successful</h1>
+                                <p className="mt-4 text-green-100 font-black uppercase tracking-widest text-[10px]">Payment ID: {paymentRef}</p>
                             </div>
-                            <div className="p-12 space-y-10">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-gray-50 p-10 rounded-[40px]">
+                            <div className="p-5 sm:p-8 md:p-12 space-y-10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 bg-gray-50 p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px]">
                                     <div className="space-y-4">
                                         <p className="text-[10px] font-black text-[#8B0000] border-b-2 border-red-100 pb-2 uppercase tracking-widest">Admission Receipt</p>
                                         {[
-                                            { l: "Candidate", v: app.studentName },
-                                            { l: "Course", v: app.course },
-                                            { l: "Method", v: paymentMethod.toUpperCase() },
-                                        ].map((x, i) => (
-                                            <div key={i} className="flex justify-between items-center"><span className="text-[9px] font-black text-gray-400 uppercase">{x.l}</span><span className="text-sm font-black text-gray-800 uppercase italic">{x.v}</span></div>
+                                            { l: "Candidate", v: receipt.studentName },
+                                            { l: "Course", v: receipt.course },
+                                            { l: "Method", v: receipt.paymentMethod || '-' },
+                                        ].map((x) => (
+                                            <div key={x.l} className="flex justify-between items-center gap-4"><span className="text-[9px] font-black text-gray-400 uppercase">{x.l}</span><span className="text-sm font-black text-gray-800 uppercase italic text-right">{x.v}</span></div>
                                         ))}
                                     </div>
                                     <div className="space-y-4">
                                         <p className="text-[10px] font-black text-[#8B0000] border-b-2 border-red-100 pb-2 uppercase tracking-widest">Financial Summary</p>
                                         {[
-                                            { l: "Amount Paid", v: formatCurrency(fees.total) },
-                                            { l: "Status", v: "PROCESSED", c: "text-green-600" },
-                                            { l: "Timeline", v: new Date().toLocaleDateString('en-GB') },
-                                        ].map((x, i) => (
-                                            <div key={i} className="flex justify-between items-center"><span className="text-[9px] font-black text-gray-400 uppercase">{x.l}</span><span className={`text-sm font-black uppercase italic ${x.c || 'text-gray-800'}`}>{x.v}</span></div>
+                                            { l: "Amount Paid", v: formatCurrency(amountPaid) },
+                                            { l: "Status", v: "PAID", c: "text-green-600" },
+                                            { l: "Date", v: paidOn.toLocaleDateString('en-GB') },
+                                        ].map((x) => (
+                                            <div key={x.l} className="flex justify-between items-center"><span className="text-[9px] font-black text-gray-400 uppercase">{x.l}</span><span className={`text-sm font-black uppercase italic ${x.c || 'text-gray-800'}`}>{x.v}</span></div>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex flex-col sm:flex-row justify-center gap-6 pt-6">
-                                    <button onClick={downloadPDF} className="flex items-center px-12 py-5 bg-green-600 text-white rounded-full font-black uppercase tracking-widest text-[11px] hover:bg-black transition-all shadow-xl group"><FaFilePdf className="mr-3 text-lg group-hover:scale-110" /> Download Enrollment PDF</button>
-                                    <button onClick={() => navigate('/student/dashboard')} className="flex items-center px-12 py-5 border-4 border-[#8B0000] text-[#8B0000] rounded-full font-black uppercase tracking-widest text-[11px] hover:bg-[#8B0000] hover:text-white transition-all group">Terminal Dashboard <FaArrowRight className="ml-3 group-hover:translate-x-1" /></button>
+                                    <button onClick={downloadPDF} className="flex items-center justify-center px-5 sm:px-8 md:px-12 py-5 bg-green-600 text-white rounded-full font-black uppercase tracking-widest text-[11px] hover:bg-black transition-all shadow-xl group border-none cursor-pointer"><FaFilePdf className="mr-3 text-lg group-hover:scale-110" /> Download Receipt PDF</button>
+                                    <button onClick={() => navigate('/student/dashboard')} className="flex items-center justify-center px-5 sm:px-8 md:px-12 py-5 border-4 border-[#8B0000] text-[#8B0000] bg-white rounded-full font-black uppercase tracking-widest text-[11px] hover:bg-[#8B0000] hover:text-white transition-all group cursor-pointer">Back to Dashboard <FaArrowRight className="ml-3 group-hover:translate-x-1" /></button>
                                 </div>
                             </div>
                         </div>

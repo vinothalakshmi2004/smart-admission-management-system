@@ -107,10 +107,10 @@ const Campus = () => {
                     {facilities.map((fac, idx) => (
                         <div
                             key={idx}
-                            className="bg-white rounded-2xl shadow-md p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group animate-slideDown"
+                            className="bg-white rounded-2xl shadow-md p-5 sm:p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group animate-slideDown"
                             style={{ animationDelay: `${idx * 50}ms` }}
                         >
-                            <div className="text-[#8B0000] text-4xl mb-6 bg-red-50 w-16 h-16 flex items-center justify-center rounded-2xl group-hover:bg-[#8B0000] group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <div className="text-[#8B0000] text-2xl sm:text-3xl md:text-4xl mb-6 bg-red-50 w-16 h-16 flex items-center justify-center rounded-2xl group-hover:bg-[#8B0000] group-hover:text-white transition-colors duration-300 shadow-inner">
                                 {fac.icon}
                             </div>
                             <h3 className="text-xl font-black text-gray-800 mb-4 font-serif border-l-4 border-[#8B0000] pl-3 leading-tight uppercase tracking-tight">

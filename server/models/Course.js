@@ -4,6 +4,11 @@ const courseSchema = mongoose.Schema({
     name: {
         type: String,
         required: true,
+        trim: true,
+    },
+    department: {
+        type: String,
+        trim: true,
     },
     description: {
         type: String,
@@ -25,10 +30,12 @@ const courseSchema = mongoose.Schema({
     totalSeats: {
         type: Number,
         default: 60,
+        min: [0, 'Total seats cannot be negative'],
     },
     filledSeats: {
         type: Number,
         default: 0,
+        min: [0, 'Filled seats cannot be negative'],
     },
 }, {
     timestamps: true,

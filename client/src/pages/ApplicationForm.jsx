@@ -155,16 +155,16 @@ const ApplicationForm = () => {
 
                 {/* Dashboard Style Page Header */}
                 <div className="mb-12 text-center md:text-left">
-                    <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none italic border-l-8 border-primary pl-6">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none italic border-l-8 border-primary pl-6">
                         Admission <span className="text-primary">Registry Portal</span>
                     </h1>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mt-3 ml-8">Academic Session 2026-2027 • Official Ledger</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-start">
 
                     {/* Main Admission Form (Desktop Left) */}
-                    <div className="lg:col-span-8 bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-gray-100 flex flex-col gap-10 relative overflow-hidden">
+                    <div className="lg:col-span-8 bg-white p-8 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 flex flex-col gap-6 md:gap-10 relative overflow-hidden">
                         {/* Decorative background */}
                         <div className="absolute right-0 top-0 h-64 w-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
@@ -299,7 +299,7 @@ const ApplicationForm = () => {
                                                     <div className="text-center p-2">
                                                         {filePreviews.communityCertificate === 'pdf_icon' ? (
                                                             <div className="flex flex-col items-center">
-                                                                <span className="text-4xl">📄</span>
+                                                                <span className="text-2xl sm:text-3xl md:text-4xl">📄</span>
                                                                 <p className="text-[10px] mt-2 font-bold text-gray-600 truncate max-w-[150px]">{files.communityCertificate.name}</p>
                                                             </div>
                                                         ) : (
@@ -309,7 +309,7 @@ const ApplicationForm = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <span className="text-3xl mb-2">📤</span>
+                                                        <span className="text-2xl md:text-3xl mb-2">📤</span>
                                                         <p className="text-xs font-bold text-gray-500 text-center">Click to upload <br /> (PDF, JPG, PNG)</p>
                                                     </>
                                                 )}
@@ -338,7 +338,7 @@ const ApplicationForm = () => {
                                                     <div className="text-center p-2">
                                                         {filePreviews.marksheet === 'pdf_icon' ? (
                                                             <div className="flex flex-col items-center">
-                                                                <span className="text-4xl">📄</span>
+                                                                <span className="text-2xl sm:text-3xl md:text-4xl">📄</span>
                                                                 <p className="text-[10px] mt-2 font-bold text-gray-600 truncate max-w-[150px]">{files.marksheet.name}</p>
                                                             </div>
                                                         ) : (
@@ -348,7 +348,7 @@ const ApplicationForm = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <span className="text-3xl mb-2">📤</span>
+                                                        <span className="text-2xl md:text-3xl mb-2">📤</span>
                                                         <p className="text-xs font-bold text-gray-500 text-center">Click to upload <br /> (PDF, JPG, PNG)</p>
                                                     </>
                                                 )}
@@ -374,7 +374,7 @@ const ApplicationForm = () => {
                         <LiveAdmissionCounter />
 
                         {/* Trust Badges */}
-                        <div className="bg-gray-900 p-8 rounded-[35px] shadow-2xl text-white relative overflow-hidden group">
+                        <div className="bg-gray-900 p-5 sm:p-8 rounded-[35px] shadow-2xl text-white relative overflow-hidden group">
                             <div className="absolute -left-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/40 transition-all"></div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-4 relative z-10">Quality Assurance</h4>
                             <p className="text-sm font-bold leading-relaxed opacity-80 italic relative z-10">"Empowering minds through academic excellence for over three decades."</p>

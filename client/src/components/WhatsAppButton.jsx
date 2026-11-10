@@ -11,7 +11,7 @@ const WhatsAppButton = () => {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-8 right-8 z-[9999] group"
+            className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-30 group"
             aria-label="Contact us on WhatsApp"
         >
             {/* Tooltip */}
@@ -21,7 +21,7 @@ const WhatsAppButton = () => {
             </span>
 
             {/* Pulse Effect */}
-            <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20"></span>
+            <span aria-hidden="true" className="hidden sm:block absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20"></span>
 
             {/* Main Button */}
             <div className="relative w-14 h-14 md:w-16 md:h-16 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(37,211,102,0.4)] hover:shadow-[0_8px_30px_rgb(37,211,102,0.6)] transition-all duration-300 transform group-hover:scale-110 active:scale-95 animate-bounce-subtle">

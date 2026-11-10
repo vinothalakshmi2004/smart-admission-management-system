@@ -3,22 +3,16 @@ import Header from './Header';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import WhatsAppButton from './WhatsAppButton';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
 const MainLayout = () => {
-    const location = useLocation();
-    const isHome = location.pathname === '/';
-
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
-            {/* Nav Container - Fixed to Top */}
-            <header className="fixed top-0 left-0 w-full z-50">
-                <Header />
-                <Navbar />
-            </header>
+        <div data-layout-root className="flex flex-col min-h-screen bg-gray-50 overflow-x-clip">
+            {/* College header scrolls away; the menu bar stays at the top */}
+            <Header />
+            <Navbar />
 
-            {/* Content Area - Add padding for fixed header, but remove for Home for full-screen hero */}
-            <main className={`flex-grow ${isHome ? '' : 'pt-[160px] md:pt-[180px] lg:pt-[170px]'}`}>
+            <main className="flex-grow min-w-0">
                 <Outlet />
             </main>
 

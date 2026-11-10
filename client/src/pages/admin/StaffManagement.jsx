@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../../context/AuthContext';
 import { toast } from 'react-toastify';
+import { API_URL } from '../../config';
 import {
     FaUserTie, FaPlus, FaEdit, FaTrash, FaEnvelope,
     FaPhone, FaIdCard, FaBuilding, FaChalkboardTeacher, FaTimes, FaSave
@@ -54,7 +55,7 @@ const StaffManagement = () => {
                     Authorization: `Bearer ${currentUser.token}`,
                 },
             };
-            const { data } = await axios.get(`http://localhost:5000/api/users?role=staff`, config);
+            const { data } = await axios.get(`${API_URL}/api/users?role=staff`, config);
             setStaffList(data);
             setLoading(false);
         } catch (error) {
@@ -89,8 +90,11 @@ const StaffManagement = () => {
         if (formData.password !== formData.confirmPassword) {
             return toast.error("Passwords do not match");
         }
-        if (formData.contactNumber.length !== 10) {
+        if (!/^\d{10}$/.test(formData.contactNumber || '')) {
             return toast.error("Contact number must be 10 digits");
+        }
+        if (formData.password && formData.password.length < 6) {
+            return toast.error("Password must be at least 6 characters");
         }
 
         try {
@@ -103,11 +107,11 @@ const StaffManagement = () => {
 
             if (editingStaff) {
                 // Update
-                await axios.put(`http://localhost:5000/api/users/staff/${editingStaff._id}`, formData, config);
+                await axios.put(`${API_URL}/api/users/staff/${editingStaff._id}`, formData, config);
                 toast.success("Staff updated successfully");
             } else {
                 // Create
-                await axios.post(`http://localhost:5000/api/users/staff`, formData, config);
+                await axios.post(`${API_URL}/api/users/staff`, formData, config);
                 toast.success("Staff account created");
             }
 
@@ -123,7 +127,7 @@ const StaffManagement = () => {
         setFormData({
             name: staff.name,
             email: staff.email,
-            contactNumber: staff.contactNumber,
+            contactNumber: staff.contactNumber || '',
             department: staff.department || '',
             employeeId: staff.employeeId || '',
             className: staff.className || '',
@@ -141,7 +145,7 @@ const StaffManagement = () => {
                         Authorization: `Bearer ${currentUser.token}`,
                     },
                 };
-                await axios.delete(`http://localhost:5000/api/users/${id}`, config);
+                await axios.delete(`${API_URL}/api/users/${id}`, config);
                 toast.success("Staff member removed");
                 fetchStaff();
             } catch (error) {
@@ -152,9 +156,9 @@ const StaffManagement = () => {
 
     return (
         <div className="animate-fadeIn space-y-12">
-            <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 border-b border-gray-100 pb-6 md:pb-8">
                 <div>
-                    <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter font-serif italic">Faculty <span className="text-primary font-sans not-italic tracking-normal">Directorate</span></h2>
+                    <h2 className="text-2xl md:text-3xl font-black text-gray-800 uppercase tracking-tighter font-serif italic">Faculty <span className="text-primary font-sans not-italic tracking-normal">Directorate</span></h2>
                     <p className="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-[0.2em] flex items-center">
                         <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 animate-pulse"></span>
                         Management of Academic Staff Records
@@ -163,7 +167,7 @@ const StaffManagement = () => {
                 {!showForm && (
                     <button
                         onClick={() => setShowForm(true)}
-                        className="bg-primary text-white px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest shadow-2xl hover:bg-secondary transition-all active:scale-95 border-none cursor-pointer flex items-center"
+                        className="bg-primary text-white px-5 sm:px-8 md:px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest shadow-2xl hover:bg-secondary transition-all active:scale-95 border-none cursor-pointer flex items-center"
                     >
                         <FaPlus className="mr-3" /> Provision New Faculty
                     </button>
@@ -171,10 +175,10 @@ const StaffManagement = () => {
             </div>
 
             {showForm && (
-                <div className="bg-white rounded-[40px] shadow-2xl p-12 border border-gray-100 mb-10 overflow-hidden relative group animate-slideDown">
+                <div className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl p-5 sm:p-8 md:p-12 border border-gray-100 mb-10 overflow-hidden relative group animate-slideDown">
                     <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 bg-primary opacity-5 rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
 
-                    <div className="flex justify-between items-center mb-12 relative z-10 border-b border-gray-50 pb-8">
+                    <div className="flex justify-between items-start gap-4 mb-8 md:mb-12 relative z-10 border-b border-gray-50 pb-6 md:pb-8">
                         <div>
                             <h3 className="text-2xl font-black italic font-serif text-secondary uppercase tracking-tighter">
                                 {editingStaff ? 'Refine Staff Profile' : 'Credentials Generation'}
@@ -312,17 +316,17 @@ const StaffManagement = () => {
             )}
 
             {/* Staff List Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                 {staffList.map((staff) => (
-                    <div key={staff._id} className="bg-white rounded-[40px] shadow-xl p-10 border border-gray-100 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden flex flex-col justify-between">
+                    <div key={staff._id} className="bg-white rounded-3xl md:rounded-[40px] shadow-xl p-5 sm:p-8 md:p-10 border border-gray-100 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden flex flex-col justify-between">
                         {/* Status chip */}
-                        <div className="absolute top-0 right-0 px-8 py-3 bg-red-50 text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-bl-[25px]">
+                        <div className="absolute top-0 right-0 px-5 sm:px-8 py-3 bg-red-50 text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-bl-[25px]">
                             AUTHORIZED STAFF
                         </div>
 
                         <div>
                             <div className="flex items-center space-x-6 mb-10 mt-2">
-                                <div className="w-20 h-20 bg-neutralLight rounded-[25px] flex items-center justify-center text-primary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-6 shadow-sm border border-red-100/50">
+                                <div className="w-20 h-20 bg-neutralLight rounded-[25px] flex items-center justify-center text-primary font-black text-2xl md:text-3xl group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-6 shadow-sm border border-red-100/50">
                                     {staff.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -374,7 +378,7 @@ const StaffManagement = () => {
             </div>
 
             {staffList.length === 0 && !loading && (
-                <div className="text-center py-24 bg-white rounded-[50px] shadow-inner border-4 border-dashed border-gray-50 italic text-gray-300 font-bold uppercase tracking-[0.5em] text-xs">
+                <div className="text-center py-24 bg-white rounded-3xl md:rounded-[50px] shadow-inner border-4 border-dashed border-gray-50 italic text-gray-300 font-bold uppercase tracking-[0.5em] text-xs">
                     ZERO ACQUISITION : FACULTY DATABASE EMPTY
                 </div>
             )}

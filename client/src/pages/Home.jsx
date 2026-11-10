@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaGraduationCap, FaChalkboardTeacher, FaUniversity, FaArrowRight, FaCalendarAlt, FaNewspaper, FaCheckCircle, FaUserGraduate } from 'react-icons/fa';
 import HeroCarousel from '../components/HeroCarousel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import WelcomeModal from '../components/WelcomeModal';
+import AuthContext from '../context/AuthContext';
 
 const Home = () => {
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
 
     const handleApplyClick = (e) => {
         if (e) e.preventDefault();
@@ -64,9 +66,9 @@ const Home = () => {
                         <div className="space-y-3 flex-grow py-2">
                             {[
                                 { name: 'Online Admission 2026', link: '#', isApply: true },
-                                { name: 'Pay Fees Online', link: '#' },
+                                { name: 'Pay Fees Online', link: user?.role === 'student' ? '/student/dashboard' : '/student-login' },
                                 { name: 'Exam Results', link: '/status' },
-                                { name: 'Download Prospectus', link: '#' },
+                                { name: 'Download Prospectus', link: '/brochure' },
                             ].map((service, i) => (
                                 <button
                                     key={i}
@@ -102,19 +104,19 @@ const Home = () => {
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x divide-gray-200">
                         <div className="p-4 transform hover:scale-105 transition duration-300">
-                            <h4 className="text-4xl font-bold text-primary mb-1">4th</h4>
+                            <h4 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">4th</h4>
                             <p className="text-sm font-semibold text-gray-500 uppercase">Ranked in India Today</p>
                         </div>
                         <div className="p-4 transform hover:scale-105 transition duration-300">
-                            <h4 className="text-4xl font-bold text-primary mb-1">A+</h4>
+                            <h4 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">A+</h4>
                             <p className="text-sm font-semibold text-gray-500 uppercase">NAAC Re-Accreditation</p>
                         </div>
                         <div className="p-4 transform hover:scale-105 transition duration-300">
-                            <h4 className="text-4xl font-bold text-primary mb-1">35+</h4>
+                            <h4 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">35+</h4>
                             <p className="text-sm font-semibold text-gray-500 uppercase">Years of Excellence</p>
                         </div>
                         <div className="p-4 transform hover:scale-105 transition duration-300">
-                            <h4 className="text-4xl font-bold text-primary mb-1">100%</h4>
+                            <h4 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">100%</h4>
                             <p className="text-sm font-semibold text-gray-500 uppercase">Placement Support</p>
                         </div>
                     </div>
@@ -164,16 +166,16 @@ const Home = () => {
             </div>
 
             {/* 4. About Section */}
-            <div className="container mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-12">
+            <div className="container mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-6 md:gap-12">
                 <div className="md:w-1/2">
                     <div className="relative rounded-lg overflow-hidden shadow-2xl border-8 border-white group">
                         {/* Placeholder for Campus Image */}
                         <div className="bg-gray-200 h-[400px] w-full flex items-center justify-center overflow-hidden">
                             <div className="absolute inset-0 bg-secondary opacity-10 pattern-dots transform scale-125 group-hover:scale-100 transition duration-700"></div>
-                            <FaUniversity className="text-9xl text-gray-400 relative z-10" />
+                            <FaUniversity className="text-6xl md:text-9xl text-gray-400 relative z-10" />
                         </div>
-                        <div className="absolute bottom-0 left-0 bg-primary text-white p-6 max-w-xs shadow-lg">
-                            <p className="text-lg font-bold leading-tight italic">"Education is the manifestation of perfection already in man."</p>
+                        <div className="absolute bottom-0 left-0 bg-primary text-white p-4 sm:p-6 max-w-[85%] sm:max-w-xs shadow-lg">
+                            <p className="text-base sm:text-lg font-bold leading-tight italic">"Education is the manifestation of perfection already in man."</p>
                             <p className="mt-2 text-sm text-accent">- Swami Vivekananda</p>
                         </div>
                     </div>
@@ -196,7 +198,7 @@ const Home = () => {
                             <li className="flex items-center text-gray-700 font-medium"><FaCheckCircle className="text-secondary mr-2" /> Strong Alumni Network</li>
                         </ul>
                     </div>
-                    <Link to="/about" className="inline-block bg-secondary text-white px-8 py-3 rounded font-bold hover:bg-primary transition shadow-lg transform hover:-translate-y-1">
+                    <Link to="/about" className="inline-block bg-secondary text-white px-5 sm:px-8 py-3 rounded font-bold hover:bg-primary transition shadow-lg transform hover:-translate-y-1">
                         Read Our Story
                     </Link>
                 </div>
@@ -221,12 +223,12 @@ const Home = () => {
                             { title: 'Psychology', icon: '🧠', count: '2 Courses' },
                             { title: 'English Literature', icon: '📚', count: '2 Courses' }
                         ].map((dept, idx) => (
-                            <div key={idx} className="bg-white p-8 rounded-lg shadow-md hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 border-b-4 border-transparent hover:border-secondary group relative overflow-hidden">
+                            <div key={idx} className="bg-white p-5 sm:p-8 rounded-lg shadow-md hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 border-b-4 border-transparent hover:border-secondary group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition">
-                                    <span className="text-9xl">{dept.icon}</span>
+                                    <span className="text-6xl md:text-9xl">{dept.icon}</span>
                                 </div>
                                 <div className="flex justify-between items-start mb-6">
-                                    <span className="text-4xl mb-4 block group-hover:scale-110 transition duration-300">{dept.icon}</span>
+                                    <span className="text-2xl sm:text-3xl md:text-4xl mb-4 block group-hover:scale-110 transition duration-300">{dept.icon}</span>
                                     <span className="bg-red-50 text-secondary text-xs font-bold px-3 py-1 rounded-full">{dept.count}</span>
                                 </div>
                                 <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition">{dept.title}</h3>
@@ -238,7 +240,7 @@ const Home = () => {
                         ))}
                     </div>
                     <div className="text-center mt-12">
-                        <Link to="/courses" className="inline-block border-2 border-primary text-primary px-10 py-3 rounded font-bold hover:bg-primary hover:text-white transition shadow-md">
+                        <Link to="/courses" className="inline-block border-2 border-primary text-primary px-5 sm:px-8 md:px-10 py-3 rounded font-bold hover:bg-primary hover:text-white transition shadow-md">
                             View All Departments
                         </Link>
                     </div>
@@ -254,10 +256,10 @@ const Home = () => {
                         Admissions open for the academic year 2026-2027. Apply now to secure your place at one of India's top ranking colleges.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6">
-                        <Button onClick={handleApplyClick} className="px-12 py-5 text-xl">
+                        <Button onClick={handleApplyClick} className="px-5 sm:px-8 md:px-12 py-5 text-xl">
                             Apply Online Now
                         </Button>
-                        <Button to="/contact" variant="secondary" className="px-12 py-5 text-xl !text-white !border-white hover:!bg-white hover:!text-primary">
+                        <Button to="/brochure" variant="secondary" className="px-5 sm:px-8 md:px-12 py-5 text-xl !text-white !border-white hover:!bg-white hover:!text-primary">
                             Download Prospectus
                         </Button>
                     </div>
@@ -280,7 +282,7 @@ const Home = () => {
                         "Career Guidance & Placement Support"
                     ].map((item, i) => (
                         <div key={i} className="bg-white rounded-xl shadow-md border-t-2 border-primary/20 p-6 flex flex-col items-center hover:scale-105 transition-transform duration-300">
-                            <FaCheckCircle className="text-primary text-3xl mb-4" />
+                            <FaCheckCircle className="text-primary text-2xl md:text-3xl mb-4" />
                             <p className="font-bold text-gray-700 text-center leading-snug">{item}</p>
                         </div>
                     ))}

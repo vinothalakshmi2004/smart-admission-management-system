@@ -47,17 +47,17 @@ const AdmissionCell = ({ isInternal = false }) => {
         <div className="flex-grow animate-fadeIn">
             {/* Title Section */}
             <div className="mb-10">
-                <h1 className="text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
                     Admission Cell
                 </h1>
             </div>
 
             <div className="space-y-10">
-                <div className="bg-[#8B0000] p-10 rounded-[40px] text-white shadow-2xl relative overflow-hidden">
+                <div className="bg-[#8B0000] p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] text-white shadow-2xl relative overflow-hidden">
                     <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
                         <FaGraduationCap size={300} />
                     </div>
-                    <h2 className="text-3xl font-black italic mb-6 leading-tight uppercase">RVS Team Welcomes All,</h2>
+                    <h2 className="text-2xl md:text-3xl font-black italic mb-6 leading-tight uppercase">RVS Team Welcomes All,</h2>
                     <p className="text-md leading-relaxed text-red-100 font-medium">
                         We offer countless opportunities for you to pursue your dreams and develop the skills you'll need to succeed in the ever-changing global marketplace.
                         At RVS, you'll find a supportive environment for research, scholarly activities and other creative pursuits.
@@ -66,7 +66,7 @@ const AdmissionCell = ({ isInternal = false }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="md:col-span-3 space-y-10">
-                        <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100">
+                        <div className="bg-white p-5 sm:p-8 rounded-[30px] shadow-xl border border-gray-100">
                             <h2 className="text-2xl font-black italic text-gray-800 mb-8 border-l-8 border-[#8B0000] pl-6 uppercase tracking-tight">Programmes Offered</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {programmes.map((p, i) => (
@@ -85,7 +85,7 @@ const AdmissionCell = ({ isInternal = false }) => {
                         </div>
 
                         {/* Admission Procedure */}
-                        <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100">
+                        <div className="bg-white p-5 sm:p-8 rounded-[30px] shadow-xl border border-gray-100">
                             <h2 className="text-2xl font-black italic text-gray-800 mb-8 border-l-8 border-[#8B0000] pl-6 uppercase tracking-tight">Admission Procedure</h2>
                             <div className="space-y-6">
                                 <div className="flex items-start">
@@ -125,7 +125,7 @@ const AdmissionCell = ({ isInternal = false }) => {
     return (
         <div className="bg-[#FAF9F6] min-h-screen pt-32 pb-20">
             <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-10">
                     <AdmissionSidebar />
                     {content}
                 </div>

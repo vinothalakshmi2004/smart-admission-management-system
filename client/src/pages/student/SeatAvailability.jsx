@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaChair, FaCheckCircle, FaExclamationTriangle, FaArrowLeft, FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { API_URL, SOCKET_URL } from '../../config';
 
 const SeatAvailability = ({ isComponent }) => {
     const [courses, setCourses] = useState([]);
@@ -12,7 +14,7 @@ const SeatAvailability = ({ isComponent }) => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const { data } = await axios.get('http://localhost:5000/api/courses');
+                const { data } = await axios.get(`${API_URL}/api/courses`);
                 setCourses(data);
             } catch (error) {
                 console.error("Error fetching courses:", error);
@@ -21,6 +23,20 @@ const SeatAvailability = ({ isComponent }) => {
             }
         };
         fetchCourses();
+
+        // Live seat updates (list and the currently selected course)
+        const socket = io(SOCKET_URL);
+        socket.on('seats_updated', ({ course, filledSeats } = {}) => {
+            if (!course || typeof filledSeats !== 'number') return;
+            const target = String(course).toLowerCase();
+            const update = (c) => (c && c.name?.toLowerCase() === target ? { ...c, filledSeats } : c);
+            setCourses((prev) => prev.map(update));
+            setSelectedCourse((prev) => update(prev));
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, []);
 
     if (loading) {
@@ -38,7 +54,7 @@ const SeatAvailability = ({ isComponent }) => {
 
                 {/* Header Section - Hide if component */}
                 {!isComponent && (
-                    <div className="flex items-center justify-between mb-12">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-12">
                         <button
                             onClick={() => navigate('/student/dashboard')}
                             className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors font-black uppercase text-[10px] tracking-widest border-none bg-transparent cursor-pointer group"
@@ -46,7 +62,7 @@ const SeatAvailability = ({ isComponent }) => {
                             <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
                         </button>
                         <div className="text-right">
-                            <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter italic border-r-8 border-primary pr-6 leading-none">
+                            <h1 className="text-2xl md:text-3xl font-black text-gray-800 uppercase tracking-tighter italic border-r-8 border-primary pr-6 leading-none">
                                 Academic <span className="text-primary">Seat Pulse</span>
                             </h1>
                         </div>
@@ -56,7 +72,7 @@ const SeatAvailability = ({ isComponent }) => {
                 {!selectedCourse ? (
                     /* Step 1: Course List Selection */
                     <div className="space-y-6">
-                        <div className={`bg-white p-8 rounded-[30px] border border-gray-100 flex items-center gap-4 mb-8 ${isComponent ? 'shadow-none border-none' : 'shadow-sm'}`}>
+                        <div className={`bg-white p-5 sm:p-8 rounded-[30px] border border-gray-100 flex items-center gap-4 mb-8 ${isComponent ? 'shadow-none border-none' : 'shadow-sm'}`}>
                             <div className="bg-primary/10 p-4 rounded-2xl text-primary">
                                 <FaChair className="text-2xl" />
                             </div>
@@ -71,14 +87,14 @@ const SeatAvailability = ({ isComponent }) => {
                                 <button
                                     key={course._id}
                                     onClick={() => setSelectedCourse(course)}
-                                    className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 hover:border-primary/30 transition-all duration-300 group flex items-center justify-between group cursor-pointer border-none text-left"
+                                    className="bg-white p-5 sm:p-8 rounded-[30px] shadow-xl border border-gray-100 hover:border-primary/30 text-left transition-all duration-300 group flex items-center justify-between group cursor-pointer border-none text-left"
                                 >
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-500 text-lg">
+                                    <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                                        <div className="w-12 h-12 shrink-0 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-500 text-lg">
                                             {course.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <h3 className="font-black text-gray-800 uppercase text-lg tracking-tight group-hover:text-primary transition-colors">{course.name}</h3>
+                                        <div className="min-w-0">
+                                            <h3 className="font-black text-gray-800 uppercase text-base sm:text-lg tracking-tight group-hover:text-primary transition-colors break-words">{course.name}</h3>
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Institutional Program</p>
                                         </div>
                                     </div>
@@ -97,7 +113,7 @@ const SeatAvailability = ({ isComponent }) => {
                             <FaArrowLeft /> View All Courses
                         </button>
 
-                        <div className={`bg-white rounded-[40px] border border-gray-100 overflow-hidden relative group ${isComponent ? 'shadow-none border-none' : 'shadow-2xl'}`}>
+                        <div className={`bg-white rounded-3xl md:rounded-[40px] border border-gray-100 overflow-hidden relative group ${isComponent ? 'shadow-none border-none' : 'shadow-2xl'}`}>
                             {/* Accent Decoration */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
@@ -108,7 +124,7 @@ const SeatAvailability = ({ isComponent }) => {
                                             <span className="px-4 py-1.5 bg-primary/10 text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-full">Course Identity</span>
                                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                         </div>
-                                        <h2 className="text-5xl font-black text-gray-800 uppercase tracking-tighter leading-none italic">{selectedCourse.name}</h2>
+                                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-800 uppercase tracking-tighter leading-none italic">{selectedCourse.name}</h2>
                                     </div>
 
                                     <div className="flex gap-4">
@@ -133,25 +149,25 @@ const SeatAvailability = ({ isComponent }) => {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                                    <div className="bg-gray-50 p-10 rounded-[35px] border border-gray-100 text-center transform transition-transform hover:-translate-y-2 group/card">
+                                    <div className="bg-gray-50 p-5 sm:p-8 md:p-10 rounded-[35px] border border-gray-100 text-center transform transition-transform hover:-translate-y-2 group/card">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 italic">Total Capacity</p>
-                                        <p className="text-5xl font-black text-gray-800 group-hover/card:text-primary transition-colors">{selectedCourse.totalSeats || 0}</p>
+                                        <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-800 group-hover/card:text-primary transition-colors">{selectedCourse.totalSeats || 0}</p>
                                         <p className="text-[9px] font-black text-gray-300 uppercase mt-4 tracking-tighter">Seats Registered</p>
                                     </div>
-                                    <div className="bg-secondary/5 p-10 rounded-[35px] border border-secondary/10 text-center transform transition-transform hover:-translate-y-2 group/card">
+                                    <div className="bg-secondary/5 p-5 sm:p-8 md:p-10 rounded-[35px] border border-secondary/10 text-center transform transition-transform hover:-translate-y-2 group/card">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 italic">Occupied Seats</p>
-                                        <p className="text-5xl font-black text-secondary italic group-hover/card:scale-110 transition-transform duration-500">{selectedCourse.filledSeats || 0}</p>
+                                        <p className="text-3xl sm:text-4xl md:text-5xl font-black text-secondary italic group-hover/card:scale-110 transition-transform duration-500">{selectedCourse.filledSeats || 0}</p>
                                         <p className="text-[9px] font-black text-gray-300 uppercase mt-4 tracking-tighter">Confirmations Pulse</p>
                                     </div>
-                                    <div className="bg-primary/5 p-10 rounded-[35px] border border-primary/20 text-center transform transition-transform hover:-translate-y-2 group/card">
+                                    <div className="bg-primary/5 p-5 sm:p-8 md:p-10 rounded-[35px] border border-primary/20 text-center transform transition-transform hover:-translate-y-2 group/card">
                                         <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-4 italic">Vacancy Balance</p>
-                                        <p className="text-5xl font-black text-primary animate-pulse group-hover/card:scale-110 transition-transform duration-500">{(selectedCourse.totalSeats || 0) - (selectedCourse.filledSeats || 0)}</p>
+                                        <p className="text-3xl sm:text-4xl md:text-5xl font-black text-primary animate-pulse group-hover/card:scale-110 transition-transform duration-500">{(selectedCourse.totalSeats || 0) - (selectedCourse.filledSeats || 0)}</p>
                                         <p className="text-[9px] font-black text-primary/40 uppercase mt-4 tracking-tighter">Live Openings</p>
                                     </div>
                                 </div>
 
                                 {/* Progress Bar Visualization */}
-                                <div className="bg-neutralLight/50 p-8 rounded-[30px] border border-gray-100">
+                                <div className="bg-neutralLight/50 p-5 sm:p-8 rounded-[30px] border border-gray-100">
                                     <div className="flex justify-between items-center mb-4 px-2">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Growth Tracker</p>
                                         <p className="text-[10px] font-black text-primary uppercase tracking-widest">

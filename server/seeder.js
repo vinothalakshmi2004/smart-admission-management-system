@@ -1,84 +1,48 @@
-const mongoose = require('mongoose');
+// Seat Matrix seeder
+//   npm run seed           -> adds every standard course (60 seats) that is not in the database yet
+//   npm run seed -- -d     -> deletes ALL courses (asks for --yes to confirm)
 const dotenv = require('dotenv');
-// const colors = require('colors'); // Removed dependency
-// I'll skip colors dependency.
-const User = require('./models/User');
-const Course = require('./models/Course');
-const connectDB = require('./config/db');
-
 dotenv.config();
 
-connectDB();
+const mongoose = require('mongoose');
+const connectDB = require('./config/db');
+const Course = require('./models/Course');
+const DEPARTMENT_COURSES = require('./data/departments');
+const { escapeRegex } = require('./utils/admission');
 
-const importData = async () => {
-    try {
-        await User.deleteMany();
-        await Course.deleteMany();
+const durationFor = (name) => (/^(m\.|mba|mca|msw)/i.test(name) ? '2 Years' : '3 Years');
 
-        const admin = await User.create({
-            name: 'College Admin',
-            email: 'admin@college.com',
-            password: 'password123',
-            role: 'admin',
-            contactNumber: '0000000000',
-        });
-
-        const courses = [
-            {
-                name: 'B.Sc Computer Science',
-                description: 'Bachelor of Science in Computer Science. Focuses on programming, algorithms, and data structures.',
-                duration: '3 Years',
-                eligibility: '12th Pass with Mathematics',
-                fees: 30000
-            },
-            {
-                name: 'BCA (Bachelor of Computer Applications)',
-                description: 'Undergraduate degree in Computer Applications. Focuses on software development and IT.',
-                duration: '3 Years',
-                eligibility: '12th Pass',
-                fees: 35000
-            },
-            {
-                name: 'M.Sc Computer Science',
-                description: 'Master of Science in Computer Science. Advanced topics in CS.',
-                duration: '2 Years',
-                eligibility: 'B.Sc CS or BCA',
-                fees: 40000
-            },
-            {
-                name: 'MCA (Master of Computer Applications)',
-                description: 'Postgraduate degree in Computer Applications. Professional course.',
-                duration: '2 Years',
-                eligibility: 'Any Degree with Maths',
-                fees: 45000
-            }
-        ];
-
-        await Course.insertMany(courses);
-
-        console.log('Data Imported!');
-        process.exit();
-    } catch (error) {
-        console.error(`${error}`);
-        process.exit(1);
+const importCourses = async () => {
+    let added = 0;
+    for (const [department, courses] of Object.entries(DEPARTMENT_COURSES)) {
+        for (const name of courses) {
+            const exists = await Course.exists({ name: new RegExp(`^${escapeRegex(name)}$`, 'i') });
+            if (exists) continue;
+            await Course.create({ name, department, duration: durationFor(name), totalSeats: 60, filledSeats: 0 });
+            added += 1;
+        }
     }
+    console.log(`✅ Seat Matrix ready: ${added} course(s) added.`);
 };
 
-const destroyData = async () => {
-    try {
-        await User.deleteMany();
-        await Course.deleteMany();
-
-        console.log('Data Destroyed!');
-        process.exit();
-    } catch (error) {
-        console.error(`${error}`);
-        process.exit(1);
+const destroyCourses = async () => {
+    if (!process.argv.includes('--yes')) {
+        console.log('This deletes ALL courses. Run again with: npm run seed -- -d --yes');
+        return;
     }
+    const { deletedCount } = await Course.deleteMany({});
+    console.log(`🗑️  Deleted ${deletedCount} course(s).`);
 };
 
-if (process.argv[2] === '-d') {
-    destroyData();
-} else {
-    importData();
-}
+(async () => {
+    try {
+        await connectDB();
+        if (process.argv.includes('-d')) await destroyCourses();
+        else await importCourses();
+    } catch (error) {
+        console.error(`❌ ${error.message}`);
+        process.exitCode = 1;
+    } finally {
+        await mongoose.disconnect();
+    }
+})();

@@ -58,14 +58,14 @@ const TrainingPlacement = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 lg:px-8 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="container mx-auto px-4 lg:px-8 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
 
                 {/* Left Side: Content & Features */}
                 <div className="lg:col-span-8 space-y-12">
 
                     {/* About Placement Cell */}
-                    <section className="bg-red-50/30 p-8 rounded-3xl border border-red-100/50">
-                        <h2 className="text-3xl font-black text-[#8B0000] mb-6 font-serif uppercase tracking-tight flex items-center">
+                    <section className="bg-red-50/30 p-5 sm:p-8 rounded-3xl border border-red-100/50">
+                        <h2 className="text-2xl md:text-3xl font-black text-[#8B0000] mb-6 font-serif uppercase tracking-tight flex items-center">
                             <FaUserGraduate className="mr-3 text-2xl" /> About Placement Cell
                         </h2>
                         <div className="space-y-4 text-gray-700 leading-relaxed text-justify font-medium italic">
@@ -86,7 +86,7 @@ const TrainingPlacement = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             {keyFeatures.map((feature, idx) => (
                                 <div key={idx} className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
-                                    <div className="text-[#8B0000] text-3xl mb-4 group-hover:scale-110 transition-transform">
+                                    <div className="text-[#8B0000] text-2xl md:text-3xl mb-4 group-hover:scale-110 transition-transform">
                                         {feature.icon}
                                     </div>
                                     <p className="font-black text-sm text-gray-800 uppercase leading-tight italic">
@@ -117,11 +117,11 @@ const TrainingPlacement = () => {
                     </section>
 
                     {/* Highlights */}
-                    <section className="bg-[#8B0000] text-white p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+                    <section className="bg-[#8B0000] text-white p-5 sm:p-8 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
                         <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
                             <FaChartLine size={200} />
                         </div>
-                        <h2 className="text-3xl font-black mb-8 font-serif uppercase tracking-tight flex items-center">
+                        <h2 className="text-2xl md:text-3xl font-black mb-8 font-serif uppercase tracking-tight flex items-center">
                             <FaCalendarCheck className="mr-3" /> Placement Division – Highlights
                         </h2>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
@@ -161,7 +161,7 @@ const TrainingPlacement = () => {
                         {/* Summary Card */}
                         <div className="mt-10 bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-300 text-center">
                             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 font-black">Success Ratio</p>
-                            <h4 className="text-4xl font-black text-[#8B0000] font-serif italic">95%+</h4>
+                            <h4 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#8B0000] font-serif italic">95%+</h4>
                             <p className="text-[11px] text-gray-400 font-medium mt-2">Consistent placement track record for eligible candidates</p>
                         </div>
                     </div>
@@ -170,8 +170,8 @@ const TrainingPlacement = () => {
             </div>
 
             {/* Background Decorative Element */}
-            <div className="fixed top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-30 -z-10 -translate-y-1/2 translate-x-1/2"></div>
-            <div className="fixed bottom-0 left-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-30 -z-10 translate-y-1/2 -translate-x-1/2"></div>
+            <div aria-hidden="true" className="hidden md:block pointer-events-none fixed top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-30 -z-10 -translate-y-1/2 translate-x-1/2"></div>
+            <div aria-hidden="true" className="hidden md:block pointer-events-none fixed bottom-0 left-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-30 -z-10 translate-y-1/2 -translate-x-1/2"></div>
         </div>
     );
 };

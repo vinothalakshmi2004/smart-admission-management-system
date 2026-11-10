@@ -33,14 +33,14 @@ const Brochure = ({ isInternal = false }) => {
     const content = (
         <div className="flex-grow animate-fadeIn">
             <div className="mb-10">
-                <h1 className="text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
                     Brochures
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                 {brochures.map((b, i) => (
-                    <div key={i} className="bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 flex flex-col items-center text-center group transition-all transform animate-fadeIn">
+                    <div key={i} className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl p-5 sm:p-8 md:p-10 border border-gray-100 flex flex-col items-center text-center group transition-all transform animate-fadeIn">
                         <div className={`${b.color} w-20 h-20 rounded-full flex items-center justify-center text-white mb-6 shadow-2xl`}>
                             {b.icon}
                         </div>
@@ -57,7 +57,7 @@ const Brochure = ({ isInternal = false }) => {
                 ))}
             </div>
 
-            <div className="mt-16 bg-white p-10 rounded-[40px] shadow-2xl border-4 border-[#8B0000]/10 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div className="mt-16 bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border-4 border-[#8B0000]/10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10">
                 <div className="max-w-xl">
                     <h4 className="text-xl font-black italic text-[#8B0000] uppercase mb-4">Need a Printed copy?</h4>
                     <p className="text-xs font-bold text-gray-400 leading-relaxed">
@@ -65,8 +65,8 @@ const Brochure = ({ isInternal = false }) => {
                     </p>
                 </div>
                 <button
-                    onClick={() => navigate('/student-login?tab=enquiry')}
-                    className="bg-black text-white px-10 py-4 rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-[#8B0000] transition-all transform shrink-0"
+                    onClick={() => navigate('/enquiry')}
+                    className="bg-black text-white px-5 sm:px-8 md:px-10 py-4 rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-[#8B0000] transition-all transform shrink-0"
                 >
                     Contact Admission Office
                 </button>
@@ -79,7 +79,7 @@ const Brochure = ({ isInternal = false }) => {
     return (
         <div className="bg-[#FAF9F6] min-h-screen pt-32 pb-20">
             <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-10">
                     <AdmissionSidebar />
                     {content}
                 </div>

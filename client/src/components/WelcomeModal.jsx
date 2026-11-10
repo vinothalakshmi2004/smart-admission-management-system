@@ -50,7 +50,7 @@ const WelcomeModal = () => {
                 <div className="p-8 md:p-10 text-center">
                     {/* Icon */}
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-red-50 rounded-full mb-6 border-2 border-primary/10 shadow-inner">
-                        <FaGraduationCap className="text-4xl text-primary" />
+                        <FaGraduationCap className="text-2xl sm:text-3xl md:text-4xl text-primary" />
                     </div>
 
                     {/* Content */}

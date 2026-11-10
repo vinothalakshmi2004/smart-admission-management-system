@@ -39,15 +39,22 @@ const Navbar = () => {
     { name: 'EXAMINATION', path: '/examination' },
   ];
 
+  // Extra links shown only in the mobile menu
+  const mobileExtras = [
+    { name: 'BROCHURE', path: '/brochure' },
+    { name: 'ENQUIRY', path: '/enquiry' },
+    { name: 'CONTACT US', path: '/contact' },
+  ];
+
   const activeStyle = "bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)] border border-white/20 backdrop-blur-md";
-  const baseStyle = "px-5 py-2 mx-1 text-[12.5px] font-black tracking-widest transition-all duration-300 flex items-center text-white/90 rounded-full hover:bg-white/10 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95";
+  const baseStyle = "px-2.5 xl:px-4 2xl:px-5 py-2 mx-0.5 xl:mx-1 text-[11px] xl:text-[12px] 2xl:text-[12.5px] font-black tracking-wider xl:tracking-widest whitespace-nowrap transition-all duration-300 flex items-center text-white/90 rounded-full hover:bg-white/10 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95";
 
   return (
     <nav className="bg-gradient-to-r from-secondary to-primary shadow-lg sticky top-0 z-40 backdrop-blur-md border-b border-white/5">
-      <div className="container mx-auto px-4 lg:px-0 flex justify-between items-center py-2">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-2 flex justify-between items-center py-1.5 lg:py-2">
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center flex-grow">
+        <div className="hidden lg:flex items-center flex-grow min-w-0">
           {navItems.map((item) => (
             <div
               key={item.name}
@@ -92,11 +99,16 @@ const Navbar = () => {
           ))}
         </div>
 
+        {/* Mobile: college short name on the left */}
+        <Link to="/" className="lg:hidden text-white font-black tracking-widest text-sm no-underline">
+          RVSCAS
+        </Link>
+
         {/* Right Side: Dashboard Link & Hamburger */}
-        <div className="flex items-center space-x-4 py-2">
+        <div className="flex items-center gap-2 sm:gap-4 py-1 lg:py-2 flex-shrink-0">
           <Link
             to={user ? (user.role === 'student' ? '/student/dashboard' : `/${user.role}/dashboard`) : "/login"}
-            className="bg-white text-primary px-5 py-2 rounded-full text-[11px] font-black hover:bg-yellow-400 hover:text-primary transition-all shadow-lg flex items-center transform hover:scale-105"
+            className="bg-white text-primary px-4 xl:px-5 py-2 rounded-full text-[11px] font-black hover:bg-yellow-400 hover:text-primary transition-all shadow-lg flex items-center transform hover:scale-105 whitespace-nowrap"
           >
             <FaUserShield className="mr-2" />
             {user ? 'DASHBOARD' : 'LOGIN'}
@@ -104,8 +116,11 @@ const Navbar = () => {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="lg:hidden text-white text-2xl"
+            type="button"
+            className="lg:hidden text-white text-2xl h-11 w-11 flex items-center justify-center bg-transparent border-none cursor-pointer"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
@@ -114,14 +129,14 @@ const Navbar = () => {
 
       {/* Mobile Menu Drawer - Modernized */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-secondary/98 backdrop-blur-2xl border-t border-white/5 animate-slideDown shadow-2xl overflow-hidden rounded-b-3xl mx-4 mt-2">
-          <div className="flex flex-col p-4 space-y-2">
-            {navItems.map((item) => (
+        <div className="lg:hidden bg-secondary/98 backdrop-blur-2xl border-t border-white/5 animate-slideDown shadow-2xl rounded-b-3xl mx-3 sm:mx-4 mt-1 mb-2 max-h-[calc(100svh-5rem)] overflow-y-auto overscroll-contain">
+          <div className="flex flex-col p-3 sm:p-4 space-y-1">
+            {[...navItems, ...mobileExtras].map((item) => (
               <div key={item.name}>
                 {item.onClick ? (
                   <button
                     onClick={item.onClick}
-                    className="w-full text-left px-6 py-4 text-sm font-bold text-white/90 hover:bg-white/10 hover:text-white rounded-2xl flex justify-between items-center border-none bg-transparent cursor-pointer transition-all"
+                    className="w-full text-left px-5 py-3 text-sm font-bold text-white/90 hover:bg-white/10 hover:text-white rounded-2xl flex justify-between items-center border-none bg-transparent cursor-pointer transition-all"
                   >
                     {item.name}
                   </button>
@@ -129,7 +144,7 @@ const Navbar = () => {
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `block px-6 py-4 text-sm font-bold rounded-2xl flex justify-between items-center transition-all ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`
+                      `block px-5 py-3 text-sm font-bold rounded-2xl flex justify-between items-center transition-all ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -138,6 +153,15 @@ const Navbar = () => {
                 )}
               </div>
             ))}
+            {user && (
+              <button
+                type="button"
+                onClick={() => { logout(); setIsMenuOpen(false); navigate('/'); }}
+                className="w-full text-left px-5 py-3 text-sm font-bold text-yellow-300 hover:bg-white/10 rounded-2xl border-none bg-transparent cursor-pointer transition-all"
+              >
+                LOGOUT
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -37,15 +37,15 @@ const AdminLogin = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-neutralLight py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white p-12 rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden">
+            <div className="max-w-md w-full bg-white p-5 sm:p-8 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden">
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 bg-primary opacity-5 rounded-full pointer-events-none"></div>
 
                 <div className="relative z-10 text-center">
-                    <div className="mx-auto h-20 w-20 bg-primary text-white rounded-3xl flex items-center justify-center text-4xl shadow-2xl mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                    <div className="mx-auto h-20 w-20 bg-primary text-white rounded-3xl flex items-center justify-center text-2xl sm:text-3xl md:text-4xl shadow-2xl mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
                         <FaUserShield />
                     </div>
-                    <h2 className="text-4xl font-black text-secondary tracking-tight font-serif italic uppercase">Admin Control</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-secondary tracking-tight font-serif italic uppercase">Admin Control</h2>
                     <p className="mt-2 text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] italic">System Overseer Authentication</p>
                 </div>
 

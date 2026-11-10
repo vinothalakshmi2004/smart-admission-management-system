@@ -72,7 +72,7 @@ const createAdmin = asyncHandler(async (req, res) => {
     });
 
     if (admin) {
-        res.status(201).json(admin);
+        res.status(201).json(withoutPassword(admin));
     } else {
         res.status(400);
         throw new Error('Invalid admin data');
@@ -92,7 +92,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
             admin.password = req.body.password;
         }
         const updatedAdmin = await admin.save();
-        res.json(updatedAdmin);
+        res.json(withoutPassword(updatedAdmin));
     } else {
         res.status(404);
         throw new Error('Admin not found');
@@ -126,14 +126,40 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new Error('User not found');
 });
 
+const STAFF_PROFILE_FIELDS = ['contactNumber', 'department', 'employeeId', 'className'];
+
+const staffProfile = (body) => {
+    const profile = {};
+    for (const field of STAFF_PROFILE_FIELDS) {
+        if (body[field] !== undefined) profile[field] = String(body[field]).trim();
+    }
+    if (profile.contactNumber && !/^\d{10}$/.test(profile.contactNumber)) {
+        const err = new Error('Contact number must be 10 digits');
+        err.statusCode = 400;
+        throw err;
+    }
+    return profile;
+};
+
+const withoutPassword = (doc) => {
+    const obj = doc.toObject();
+    delete obj.password;
+    return obj;
+};
+
 // @desc    Create a staff member
 // @route   POST /api/users/staff
 // @access  Private/Admin
 const createStaff = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const name = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const { password } = req.body;
 
-    const exists = await Staff.findOne({ email });
-    if (exists) {
+    if (!name || !email || !password) {
+        res.status(400);
+        throw new Error('Name, email and password are required');
+    }
+    if ((await Staff.findOne({ email })) || (await Student.findOne({ email }))) {
         res.status(400);
         throw new Error('Email already in use');
     }
@@ -143,14 +169,9 @@ const createStaff = asyncHandler(async (req, res) => {
         email,
         password,
         role: 'staff',
+        ...staffProfile(req.body),
     });
-
-    if (staff) {
-        res.status(201).json(staff);
-    } else {
-        res.status(400);
-        throw new Error('Invalid staff data');
-    }
+    res.status(201).json(withoutPassword(staff));
 });
 
 // @desc    Update a staff member
@@ -159,18 +180,25 @@ const createStaff = asyncHandler(async (req, res) => {
 const updateStaff = asyncHandler(async (req, res) => {
     const staff = await Staff.findById(req.params.id);
 
-    if (staff && staff.role === 'staff') {
-        staff.name = req.body.name || staff.name;
-        staff.email = req.body.email || staff.email;
-        if (req.body.password) {
-            staff.password = req.body.password;
-        }
-        const updatedStaff = await staff.save();
-        res.json(updatedStaff);
-    } else {
+    if (!staff || staff.role !== 'staff') {
         res.status(404);
         throw new Error('Staff member not found');
     }
+
+    if (req.body.email) {
+        const email = String(req.body.email).trim().toLowerCase();
+        if (email !== staff.email && ((await Staff.findOne({ email })) || (await Student.findOne({ email })))) {
+            res.status(400);
+            throw new Error('Email already in use');
+        }
+        staff.email = email;
+    }
+    if (req.body.name) staff.name = String(req.body.name).trim();
+    Object.assign(staff, staffProfile(req.body));
+    if (req.body.password) staff.password = req.body.password;
+
+    const updatedStaff = await staff.save();
+    res.json(withoutPassword(updatedStaff));
 });
 
 // @desc    Create a student
@@ -193,7 +221,7 @@ const createStudent = asyncHandler(async (req, res) => {
     });
 
     if (student) {
-        res.status(201).json(student);
+        res.status(201).json(withoutPassword(student));
     } else {
         res.status(400);
         throw new Error('Invalid student data');
@@ -214,7 +242,7 @@ const updateStudent = asyncHandler(async (req, res) => {
             student.password = req.body.password;
         }
         const updatedStudent = await student.save();
-        res.json(updatedStudent);
+        res.json(withoutPassword(updatedStudent));
     } else {
         res.status(404);
         throw new Error('Student not found');

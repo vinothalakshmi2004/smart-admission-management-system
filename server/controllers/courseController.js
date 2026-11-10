@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const Course = require('../models/Course');
+const { escapeRegex } = require('../utils/admission');
 
 // @desc    Fetch all courses
 // @route   GET /api/courses
@@ -26,20 +27,45 @@ const getCourseById = asyncHandler(async (req, res) => {
 // @desc    Create a course
 // @route   POST /api/courses
 // @access  Private/Admin
-const createCourse = asyncHandler(async (req, res) => {
-    const { name, description, duration, eligibility, fees, totalSeats, filledSeats } = req.body;
+const TEXT_FIELDS = ['name', 'department', 'description', 'duration', 'eligibility'];
 
-    const course = new Course({
-        name,
-        description,
-        duration,
-        eligibility,
-        fees,
-        totalSeats: totalSeats || 60,
-        filledSeats: filledSeats || 0
+// Copy only known fields from the request; numbers are checked.
+const applyCourseFields = async (course, body, res) => {
+    for (const field of TEXT_FIELDS) {
+        if (body[field] !== undefined) course[field] = String(body[field]).trim();
+    }
+    for (const field of ['fees', 'totalSeats', 'filledSeats']) {
+        if (body[field] === undefined || body[field] === '') continue;
+        const value = Number(body[field]);
+        if (!Number.isFinite(value) || value < 0) {
+            res.status(400);
+            throw new Error(`${field} must be a number of 0 or more`);
+        }
+        course[field] = field === 'fees' ? value : Math.floor(value);
+    }
+    if (!course.name) {
+        res.status(400);
+        throw new Error('Course name is required');
+    }
+    if (course.filledSeats > course.totalSeats) {
+        res.status(400);
+        throw new Error('Filled seats cannot be more than total seats');
+    }
+    const duplicate = await Course.findOne({
+        _id: { $ne: course._id },
+        name: new RegExp(`^${escapeRegex(course.name)}$`, 'i'),
     });
+    if (duplicate) {
+        res.status(400);
+        throw new Error('A course with this name already exists');
+    }
+};
 
+const createCourse = asyncHandler(async (req, res) => {
+    const course = new Course({ totalSeats: 60, filledSeats: 0 });
+    await applyCourseFields(course, req.body, res);
     const createdCourse = await course.save();
+    if (req.io) req.io.emit('seats_updated', { course: createdCourse.name, filledSeats: createdCourse.filledSeats, totalSeats: createdCourse.totalSeats });
     res.status(201).json(createdCourse);
 });
 
@@ -47,25 +73,15 @@ const createCourse = asyncHandler(async (req, res) => {
 // @route   PUT /api/courses/:id
 // @access  Private/Admin
 const updateCourse = asyncHandler(async (req, res) => {
-    const { name, description, duration, eligibility, fees, totalSeats, filledSeats } = req.body;
-
     const course = await Course.findById(req.params.id);
-
-    if (course) {
-        course.name = name || course.name;
-        course.description = description || course.description;
-        course.duration = duration || course.duration;
-        course.eligibility = eligibility || course.eligibility;
-        course.fees = fees || course.fees;
-        course.totalSeats = totalSeats !== undefined ? totalSeats : course.totalSeats;
-        course.filledSeats = filledSeats !== undefined ? filledSeats : course.filledSeats;
-
-        const updatedCourse = await course.save();
-        res.json(updatedCourse);
-    } else {
+    if (!course) {
         res.status(404);
         throw new Error('Course not found');
     }
+    await applyCourseFields(course, req.body, res);
+    const updatedCourse = await course.save();
+    if (req.io) req.io.emit('seats_updated', { course: updatedCourse.name, filledSeats: updatedCourse.filledSeats, totalSeats: updatedCourse.totalSeats });
+    res.json(updatedCourse);
 });
 
 // @desc    Delete a course

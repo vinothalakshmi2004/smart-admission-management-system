@@ -1,93 +1,141 @@
-const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
+
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const http = require('http');
+const multer = require('multer');
 const { Server } = require('socket.io');
-const path = require('path');
 const connectDB = require('./config/db');
-
-// Load env vars
-dotenv.config();
-
-// Connect to database
 const createDefaultUsers = require('./utils/createAdmin');
-connectDB().then(() => {
-    createDefaultUsers(); // Create default users on server startup if not exists
-});
+
+// ── Required settings ──
+const missing = ['MONGO_URI', 'JWT_SECRET'].filter((key) => !process.env[key]);
+if (missing.length) {
+    console.error(`❌ Missing required setting(s) in .env: ${missing.join(', ')}`);
+    process.exit(1);
+}
+
+const isProduction = process.env.NODE_ENV === 'production';
+const PORT = process.env.PORT || 5000;
+
+// Browser origins allowed to call the API from another address.
+// Comma-separated, e.g. CLIENT_URL=https://admissions.example.com
+const allowedOrigins = (process.env.CLIENT_URL || (isProduction ? '' : 'http://localhost:5173,http://localhost:4173'))
+    .split(',')
+    .map((o) => o.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+
+const corsOrigin = (origin, callback) => {
+    // Same-origin requests and tools without an Origin header are fine;
+    // other origins get no CORS headers, so the browser blocks them.
+    callback(null, !origin || allowedOrigins.includes(origin));
+};
+
+connectDB().then(() => createDefaultUsers());
 
 const app = express();
-
-// Create HTTP server and Socket.io BEFORE routes
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: '*', // Allow all origins in dev (Vite runs on 5173, CRA on 3000)
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    },
+    cors: { origin: corsOrigin, methods: ['GET', 'POST'] },
 });
 
-// Core Middleware
-app.use(express.json()); // body-parser for JSON
-app.use(express.urlencoded({ extended: true })); // support URL-encoded bodies
-app.use(cors());
-app.use(helmet());
-app.use(morgan('dev'));
+if (isProduction) app.set('trust proxy', 1); // correct client IPs behind a hosting proxy
 
-// Socket.io Middleware — attach io to every request (MUST be before routes)
+// ── Core middleware ──
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                // Razorpay Checkout loads its script and opens its payment window in an iframe
+                scriptSrc: ["'self'", 'https://checkout.razorpay.com'],
+                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+                fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+                imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+                connectSrc: ["'self'", 'ws:', 'wss:', 'https://*.razorpay.com', ...allowedOrigins],
+                frameSrc: ['https://api.razorpay.com', 'https://checkout.razorpay.com'],
+                objectSrc: ["'none'"],
+                // Helmet adds upgrade-insecure-requests by default. On a plain-HTTP host,
+                // Safari/iPhone then fails to load the CSS/JS (blank page), so it is opt-in.
+                upgradeInsecureRequests: process.env.FORCE_HTTPS === 'true' ? [] : null,
+            },
+        },
+    })
+);
+app.use(cors({ origin: corsOrigin }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(morgan(isProduction ? 'combined' : 'dev'));
+
+// Give controllers access to Socket.io
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const courseRoutes = require('./routes/courseRoutes');
-const applicationRoutes = require('./routes/applicationRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const userRoutes = require('./routes/userRoutes');
-const enquiryRoutes = require('./routes/enquiryRoutes');
-const contactRoutes = require('./routes/contactRoutes');
+// ── API routes ──
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/students', require('./routes/studentRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/enquiries', require('./routes/enquiryRoutes'));
+app.use('/api/contact', require('./routes/contactRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/enquiries', enquiryRoutes);
-app.use('/api/contact', contactRoutes);
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.use('/api', (req, res) => res.status(404).json({ message: 'API route not found' }));
 
-// Make uploads folder static
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+// ── React app (production build) ──
+// Uploaded documents are NOT served publicly; see GET /api/students/:id/documents/:type
+const clientDist = path.join(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+    app.use(express.static(clientDist, { index: false, maxAge: isProduction ? '1h' : 0 }));
+    app.get(/^\/(?!api\/|socket\.io\/).*/, (req, res) => {
+        res.sendFile(path.join(clientDist, 'index.html'));
+    });
+} else {
+    app.get('/', (req, res) => res.send('API is running...'));
+}
 
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
-
-// Error handling middleware (MUST be AFTER routes)
+// ── Error handling (must be after routes) ──
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    res.status(statusCode);
-    res.json({
-        message: err.message,
-        stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    let statusCode = err.statusCode || (res.statusCode >= 400 ? res.statusCode : 500);
+    let message = err.message || 'Server error';
+
+    if (err instanceof multer.MulterError) {
+        statusCode = 400;
+        message = err.code === 'LIMIT_FILE_SIZE' ? 'Each file must be 5 MB or smaller' : `Upload error: ${err.message}`;
+    } else if (err.name === 'CastError') {
+        statusCode = 404;
+        message = 'Record not found';
+    } else if (err.name === 'ValidationError') {
+        statusCode = 400;
+        message = Object.values(err.errors).map((e) => e.message).join(', ');
+    } else if (err.type === 'entity.too.large') {
+        statusCode = 413;
+        message = 'Request is too large';
+    }
+
+    if (statusCode >= 500) console.error(err);
+    res.status(statusCode).json({
+        message: statusCode >= 500 && isProduction ? 'Server error. Please try again later.' : message,
+        stack: isProduction ? undefined : err.stack,
     });
 });
 
-// Socket.io connection events
+// ── Socket.io ──
 io.on('connection', (socket) => {
-    console.log('New client connected', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected', socket.id);
-    });
+    if (!isProduction) console.log('Client connected', socket.id);
 });
-
-const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
-

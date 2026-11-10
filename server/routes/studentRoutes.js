@@ -1,41 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const { applyStudent, loginStudent } = require('../controllers/studentController');
+const { applyStudent, loginStudent, getStudentDocument } = require('../controllers/studentController');
+const { protect, studentOnly } = require('../middleware/authMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
+const { authLimiter } = require('../middleware/rateLimiters');
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
+// Application with documents (logged-in students only)
+router.post(
+    '/apply',
+    protect,
+    studentOnly,
+    upload.fields([
+        { name: 'communityCertificate', maxCount: 1 },
+        { name: 'marksheet', maxCount: 1 },
+    ]),
+    applyStudent
+);
 
-const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|pdf/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
+router.post('/login', authLimiter, loginStudent);
 
-        if (mimetype && extname) {
-            return cb(null, true);
-        } else {
-            cb(new Error('Only PDF, JPG, and PNG files are allowed'));
-        }
-    }
-});
-
-// Route for student application submission with file uploads
-router.post('/apply', upload.fields([
-    { name: 'communityCertificate', maxCount: 1 },
-    { name: 'marksheet', maxCount: 1 }
-]), applyStudent);
-
-// Route for student login
-router.post('/login', loginStudent);
+// Uploaded documents are private: served only through this route
+router.get('/:id/documents/:type', protect, getStudentDocument);
 
 module.exports = router;

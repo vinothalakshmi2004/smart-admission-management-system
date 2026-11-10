@@ -5,7 +5,7 @@ import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube, FaPhone, FaE
 const Footer = () => {
     return (
         <footer className="bg-darkRed text-gray-200 font-sans py-10">
-            <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
 
                 {/* Column 1: Institute Info */}
                 <div className="space-y-4">
@@ -29,9 +29,9 @@ const Footer = () => {
                         <Link to="/courses" className="text-sm hover:text-yellow-400 transition flex items-center">Academic Programs</Link>
                         <Link to="/student-login" className="text-sm hover:text-yellow-400 transition flex items-center">Online Admission</Link>
                         <Link to="/status" className="text-sm hover:text-yellow-400 transition flex items-center">Exam Results</Link>
-                        <Link to="/about" className="text-sm hover:text-yellow-400 transition flex items-center">Placement Cell</Link>
+                        <Link to="/training-placement" className="text-sm hover:text-yellow-400 transition flex items-center">Placement Cell</Link>
                         <Link to="/contact" className="text-sm hover:text-yellow-400 transition flex items-center">Alumni Association</Link>
-                        <Link to="/iqac" className="text-sm hover:text-yellow-400 transition flex items-center">IQAC / NAAC</Link>
+                        <a href="https://rvscas.ac.in" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-yellow-400 transition flex items-center">IQAC / NAAC</a>
                     </div>
                 </div>
 

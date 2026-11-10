@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import AuthContext from '../context/AuthContext';
+import { API_URL, SOCKET_URL } from '../config';
 
 const ApplicationStatus = () => {
     const { user } = useContext(AuthContext);
@@ -24,7 +25,7 @@ const ApplicationStatus = () => {
                         Authorization: `Bearer ${user.token}`,
                     },
                 };
-                const { data } = await axios.get('http://localhost:5000/api/applications/my', config);
+                const { data } = await axios.get(`${API_URL}/api/applications/my`, config);
                 setApplications(data);
                 setLoading(false);
             } catch (error) {
@@ -37,7 +38,7 @@ const ApplicationStatus = () => {
         fetchApplications();
 
         // Real-time Updates
-        const socket = io('http://localhost:5000');
+        const socket = io(SOCKET_URL);
 
         socket.on('connect', () => {
             console.log('Connected to socket server');
@@ -61,11 +62,11 @@ const ApplicationStatus = () => {
 
     }, [user, navigate]);
 
-    if (loading) return <div className="p-10 text-center">Loading...</div>;
+    if (loading) return <div className="p-5 sm:p-8 md:p-10 text-center">Loading...</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-10">
-            <h1 className="text-3xl font-bold text-center text-primary mb-10 uppercase font-serif tracking-tight">My Applications</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-center text-primary mb-10 uppercase font-serif tracking-tight">My Applications</h1>
 
             {applications.length === 0 ? (
                 <div className="text-center text-gray-600">

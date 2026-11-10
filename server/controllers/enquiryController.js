@@ -48,6 +48,25 @@ const getEnquiries = asyncHandler(async (req, res) => {
     res.json(enquiries);
 });
 
+// @desc    Update an enquiry's follow-up status
+// @route   PUT /api/enquiries/:id
+// @access  Private/Staff or Admin
+const ENQUIRY_STATUSES = ['Not Contacted', 'Assigned', 'Contacted'];
+const updateEnquiryStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    if (!ENQUIRY_STATUSES.includes(status)) {
+        res.status(400);
+        throw new Error(`Status must be one of: ${ENQUIRY_STATUSES.join(', ')}`);
+    }
+    const enquiry = await Enquiry.findById(req.params.id);
+    if (!enquiry) {
+        res.status(404);
+        throw new Error('Enquiry not found');
+    }
+    enquiry.status = status;
+    res.json(await enquiry.save());
+});
+
 // @desc    Delete an enquiry
 // @route   DELETE /api/enquiries/:id
 // @access  Private/Admin
@@ -66,5 +85,6 @@ const deleteEnquiry = asyncHandler(async (req, res) => {
 module.exports = {
     submitEnquiry,
     getEnquiries,
+    updateEnquiryStatus,
     deleteEnquiry,
 };
