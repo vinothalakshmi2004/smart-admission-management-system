@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer utilities {
+  .bg-neutralLight {
+    @apply bg-[#FFF5F5];
+  }
+}
+
+@layer base {
+  body {
+    @apply font-sans text-gray-800 bg-gray-50;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
+    /* RVS Style headers are often serif */
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-secondary;
+}
+
+
+.about-page {
+  background-color: #FFF5F5;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8B0000;
+  margin-bottom: 1rem;
+}
+
+.section-text {
+  color: #374151;
+  line-height: 1.7;
+}
+
+.info-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.feature-card {
+  background: #8B0000;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.feature-card:hover {
+  background: #660000;
+  transform: translateY(-5px);
+}
+
+/* Admission Section */
+.admission-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+}
+
+.admission-card:hover {
+  transform: translateY(-6px);
+}
+
+.admission-icon {
+  font-size: 2.5rem;
+  color: #8B0000;
+  margin-bottom: 1rem;
+}
+
+.admission-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8B0000;
+  margin-bottom: 0.5rem;
+}
+
+.admission-text {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+/* Why Choose Us */
+.why-card {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.why-card:hover {
+  background: #8B0000;
+  color: white;
+}
+
+.why-card:hover p {
+  color: white;
+}

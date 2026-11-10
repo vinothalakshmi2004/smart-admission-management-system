@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+
+# Logs
+logs/
+*.log
+build_log.txt
+eslint_log.txt
+
+# Uploaded files (keep the folder, ignore the contents)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
