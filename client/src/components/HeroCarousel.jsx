@@ -50,7 +50,7 @@ const HeroCarousel = () => {
     };
 
     return (
-        <section className="relative h-screen w-full overflow-hidden">
+        <section className="relative h-[calc(100svh-3.5rem)] min-h-[600px] md:min-h-[680px] max-h-[1100px] w-full overflow-hidden">
             {/* Slides */}
             {slides.map((slide, index) => (
                 <div
@@ -72,29 +72,29 @@ const HeroCarousel = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="relative z-20 h-full flex items-center pt-[120px] md:pt-[170px]">
-                        <div className="container mx-auto px-6 md:px-12">
+                    <div className="relative z-20 h-full flex items-center pt-6 pb-32 md:pt-10 md:pb-36">
+                        <div className="container mx-auto px-5 sm:px-6 md:px-12">
                             <div className={`max-w-4xl transition-all duration-1000 ease-out ${index === currentSlide ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'
                                 }`}>
-                                <span className="inline-block px-4 py-1.5 mb-6 text-[10px] md:text-sm font-bold tracking-[0.2em] text-white bg-primary rounded-sm shadow-lg animate-pulse border border-red-400/30">
+                                <span className="inline-block px-3 sm:px-4 py-1.5 mb-4 md:mb-6 text-[10px] md:text-sm font-bold tracking-[0.2em] text-white bg-primary rounded-sm shadow-lg animate-pulse border border-red-400/30">
                                     {slide.badge}
                                 </span>
-                                <h1 className="text-4xl md:text-6xl lg:text-8xl font-serif font-black text-white mb-6 leading-tight drop-shadow-2xl">
+                                <h1 className="text-3xl sm:text-4xl md:text-6xl xl:text-8xl font-serif font-black text-white mb-4 md:mb-6 leading-tight drop-shadow-2xl break-words">
                                     {slide.heading}
                                 </h1>
-                                <p className="text-lg md:text-2xl text-gray-200 mb-10 max-w-2xl font-light leading-relaxed drop-shadow-lg text-shadow-sm">
+                                <p className="text-base sm:text-lg md:text-2xl text-gray-200 mb-6 md:mb-10 max-w-2xl font-light leading-relaxed drop-shadow-lg text-shadow-sm">
                                     {slide.subheading}
                                 </p>
-                                <div className="flex flex-col sm:flex-row gap-5">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-5">
                                     <button
                                         onClick={handleApplyClick}
-                                        className="px-10 py-4 bg-primary text-white font-bold rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 active:scale-95 shadow-2xl border-none cursor-pointer text-lg tracking-wide"
+                                        className="px-8 md:px-10 py-3 md:py-4 bg-primary text-white font-bold rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 active:scale-95 shadow-2xl border-none cursor-pointer text-base md:text-lg tracking-wide"
                                     >
                                         Apply Now
                                     </button>
                                     <Link
                                         to="/courses"
-                                        className="px-10 py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-primary transition-all transform hover:scale-105 active:scale-95 shadow-2xl no-underline inline-block text-lg tracking-wide text-center"
+                                        className="px-8 md:px-10 py-3 md:py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-primary transition-all transform hover:scale-105 active:scale-95 shadow-2xl no-underline inline-block text-base md:text-lg tracking-wide text-center"
                                     >
                                         Explore Courses
                                     </Link>
@@ -122,7 +122,7 @@ const HeroCarousel = () => {
             </button>
 
             {/* Pagination Dots - Moved up to accommodate ticker */}
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4">
+            <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4">
                 {slides.map((_, index) => (
                     <button
                         key={index}
@@ -146,7 +146,7 @@ const HeroCarousel = () => {
                 <div className="animate-marquee whitespace-nowrap flex items-center">
                     {[...Array(10)].map((_, i) => (
                         <div key={i} className="flex items-center">
-                            <span className="text-sm md:text-lg font-bold uppercase tracking-[0.1em] px-8 flex items-center gap-3">
+                            <span className="text-sm md:text-lg font-bold uppercase tracking-[0.1em] px-5 sm:px-8 flex items-center gap-3">
                                 <span className="text-accent">★</span>
                                 Admission Open for 2026
                                 <span className="text-accent text-xs">●</span>

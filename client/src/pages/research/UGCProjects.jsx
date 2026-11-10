@@ -5,17 +5,22 @@ import {
     FaFileAlt, FaUserTie, FaMoneyBillWave, FaClock, FaChevronRight
 } from 'react-icons/fa';
 
+const OFFICIAL_SITE = 'https://rvscas.ac.in';
+
 const UGCProjects = () => {
+    // Only UGC Projects has a page here; the rest live on the official college site.
     const researchMenu = [
-        { name: 'Funded Projects', path: '/research/funded' },
-        { name: 'Other Projects', path: '/research/other' },
+        { name: 'Funded Projects', href: OFFICIAL_SITE },
+        { name: 'Other Projects', href: OFFICIAL_SITE },
         { name: 'UGC Projects', path: '/research/ugc-projects', active: true },
-        { name: 'Ph.D', path: '/research/phd' },
-        { name: 'Publications', path: '/research/publications' },
-        { name: 'Books Published', path: '/research/books' },
-        { name: 'Patents', path: '/research/patents' },
-        { name: 'Paper Presentation', path: '/research/paper-presentation' },
+        { name: 'Ph.D', href: OFFICIAL_SITE },
+        { name: 'Publications', href: OFFICIAL_SITE },
+        { name: 'Books Published', href: OFFICIAL_SITE },
+        { name: 'Patents', href: OFFICIAL_SITE },
+        { name: 'Paper Presentation', href: OFFICIAL_SITE },
     ];
+    const menuItemBase = 'flex items-center justify-between w-full p-4 rounded-2xl text-[11px] font-black uppercase tracking-tighter transition-all duration-300 group';
+    const menuItemInactive = 'text-gray-600 hover:bg-red-50 hover:text-[#8B0000]';
 
     const instrumentationFacility = [
         'Central Instrumentation Facility',
@@ -74,7 +79,7 @@ const UGCProjects = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 lg:px-8 mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="container mx-auto px-4 lg:px-8 mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
 
                 {/* Left Sidebar */}
                 <aside className="lg:col-span-3 space-y-8 animate-slideDown">
@@ -85,24 +90,41 @@ const UGCProjects = () => {
                             <h3 className="text-sm font-black uppercase tracking-widest font-serif italic">Research Menu</h3>
                         </div>
                         <div className="p-2">
-                            {researchMenu.map((item) => (
-                                <NavLink
-                                    key={item.name}
-                                    to={item.path}
-                                    className={({ isActive }) =>
-                                        `flex items-center justify-between w-full p-4 rounded-2xl text-[11px] font-black uppercase tracking-tighter transition-all duration-300 group ${isActive || item.active
-                                            ? 'bg-[#8B0000] text-white shadow-lg transform scale-[1.02]'
-                                            : 'text-gray-600 hover:bg-red-50 hover:text-[#8B0000]'
-                                        }`
-                                    }
-                                >
-                                    <span className="flex items-center">
-                                        <FaArrowAltCircleRight className={`mr-3 text-sm ${item.active ? 'text-red-200' : 'text-red-900/20'} group-hover:text-[#8B0000] transition-colors`} />
-                                        {item.name}
-                                    </span>
-                                    <FaChevronRight className="text-[9px] opacity-20" />
-                                </NavLink>
-                            ))}
+                            {researchMenu.map((item) => {
+                                const inner = (
+                                    <>
+                                        <span className="flex items-center">
+                                            <FaArrowAltCircleRight className={`mr-3 text-sm ${item.active ? 'text-red-200' : 'text-red-900/20'} group-hover:text-[#8B0000] transition-colors`} />
+                                            {item.name}
+                                        </span>
+                                        <FaChevronRight className="text-[9px] opacity-20" />
+                                    </>
+                                );
+                                return item.path ? (
+                                    <NavLink
+                                        key={item.name}
+                                        to={item.path}
+                                        className={({ isActive }) =>
+                                            `${menuItemBase} ${isActive || item.active
+                                                ? 'bg-[#8B0000] text-white shadow-lg transform scale-[1.02]'
+                                                : menuItemInactive
+                                            }`
+                                        }
+                                    >
+                                        {inner}
+                                    </NavLink>
+                                ) : (
+                                    <a
+                                        key={item.name}
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${menuItemBase} ${menuItemInactive}`}
+                                    >
+                                        {inner}
+                                    </a>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -141,8 +163,8 @@ const UGCProjects = () => {
                     </div>
 
                     {/* DST Section */}
-                    <div className="bg-[#8B0000] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden group">
-                        <FaSatellite className="absolute right-0 bottom-0 text-8xl opacity-10 transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform" />
+                    <div className="bg-[#8B0000] rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden group">
+                        <FaSatellite className="absolute right-0 bottom-0 text-5xl md:text-8xl opacity-10 transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform" />
                         <h4 className="font-serif font-black text-xl mb-4 leading-tight uppercase tracking-widest italic">DST Section</h4>
                         <div className="flex items-center space-x-2 mt-4 bg-white/10 p-4 rounded-2xl border border-white/20">
                             <FaChevronRight className="text-xs text-yellow-400" />
@@ -155,19 +177,19 @@ const UGCProjects = () => {
                 <main className="lg:col-span-9 animate-fadeIn">
                     <div className="mb-10 text-center lg:text-left border-b-4 border-[#8B0000] pb-6">
                         <h2 className="text-xl font-black text-gray-400 uppercase tracking-widest mb-2 italic">Research & Development</h2>
-                        <h3 className="text-4xl font-black text-[#8B0000] font-serif uppercase tracking-tight">UGC Funded Projects</h3>
+                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#8B0000] font-serif uppercase tracking-tight">UGC Funded Projects</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-12 mt-12">
+                    <div className="grid grid-cols-1 gap-6 md:gap-12 mt-12">
                         {projects.map((project, idx) => (
-                            <div key={idx} className="bg-white rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 hover:shadow-red-900/5 transition-all duration-500 group">
-                                <div className="bg-gray-50/50 p-10 border-b border-gray-100 relative">
-                                    <div className="absolute top-0 right-0 px-8 py-3 bg-[#8B0000] text-white text-[10px] font-black uppercase tracking-widest rounded-bl-3xl shadow-lg transform -rotate-2">
+                            <div key={idx} className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 hover:shadow-red-900/5 transition-all duration-500 group">
+                                <div className="bg-gray-50/50 p-5 sm:p-8 md:p-10 border-b border-gray-100 relative">
+                                    <div className="absolute top-0 right-0 px-5 sm:px-8 py-3 bg-[#8B0000] text-white text-[10px] font-black uppercase tracking-widest rounded-bl-3xl shadow-lg transform -rotate-2">
                                         {project.type}
                                     </div>
-                                    <div className="flex flex-col md:flex-row gap-10 items-start">
+                                    <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
                                         <div className="bg-white p-6 rounded-[30px] border-b-8 border-[#8B0000] shadow-xl shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                            <FaMicroscope className="text-5xl text-[#8B0000]" />
+                                            <FaMicroscope className="text-3xl sm:text-4xl md:text-5xl text-[#8B0000]" />
                                         </div>
                                         <div className="space-y-4 flex-grow">
                                             <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center">
@@ -197,12 +219,6 @@ const UGCProjects = () => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div className="mt-10 flex justify-end">
-                                        <button className="bg-[#8B0000] text-white px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl transform active:scale-95 group-hover:px-12">
-                                            View Report
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -210,9 +226,9 @@ const UGCProjects = () => {
 
                     {/* Summary Counter */}
                     <div className="mt-20 flex justify-center">
-                        <div className="bg-white px-12 py-8 rounded-[40px] shadow-2xl border-t-8 border-[#8B0000] text-center max-w-xs group transition-all hover:scale-105">
+                        <div className="bg-white px-5 sm:px-8 md:px-12 py-8 rounded-3xl md:rounded-[40px] shadow-2xl border-t-8 border-[#8B0000] text-center max-w-xs group transition-all hover:scale-105">
                             <h5 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Total Funded</h5>
-                            <p className="text-5xl font-black text-[#8B0000] font-serif italic leading-none">{projects.length}</p>
+                            <p className="text-3xl sm:text-4xl md:text-5xl font-black text-[#8B0000] font-serif italic leading-none">{projects.length}</p>
                             <p className="text-[10px] font-bold text-gray-400 mt-4 uppercase tracking-tighter">Current UGC Minor Projects</p>
                         </div>
                     </div>

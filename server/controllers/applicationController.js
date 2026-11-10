@@ -1,153 +1,183 @@
 const asyncHandler = require('express-async-handler');
 const Admission = require('../models/Admission');
-const Course = require('../models/Course');
+const Student = require('../models/Student');
+const razorpay = require('../utils/razorpay');
+const { findCourseByName, computeFees, escapeRegex } = require('../utils/admission');
+const { loadPayableApplication, markApplicationPaid } = require('./paymentController');
 
-// @desc    Create a new admission application
+const STATUSES = ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Not Eligible'];
+const CLOSED_STATUSES = ['Rejected', 'Cancelled', 'Not Eligible'];
+const PAYMENT_METHODS = ['DEMO', 'CARD', 'UPI', 'NET'];
+
+const badRequest = (message) => {
+    const err = new Error(message);
+    err.statusCode = 400;
+    return err;
+};
+
+const clean = (value) => (value === undefined || value === null ? '' : String(value).trim());
+
+/**
+ * Validate an application for a student and return the data to save.
+ * Throws a 400 error with a readable message when something is wrong.
+ */
+const prepareApplication = async (student, body) => {
+    const data = {
+        department: clean(body.department),
+        course: clean(body.course),
+        contactNumber: clean(body.contactNumber) || clean(student.contactNumber),
+        fatherName: clean(body.fatherName),
+        motherName: clean(body.motherName),
+        dob: clean(body.dob),
+        twelfthMark: clean(body.twelfthMark),
+        twelfthGroup: clean(body.twelfthGroup),
+        schoolName: clean(body.schoolName),
+        aadharNumber: clean(body.aadharNumber).replace(/\s+/g, ''),
+    };
+
+    const labels = {
+        department: 'department', course: 'course', contactNumber: 'contact number',
+        fatherName: "father's name", motherName: "mother's name", dob: 'date of birth',
+        twelfthMark: '12th mark', twelfthGroup: '12th group', schoolName: 'school name',
+        aadharNumber: 'Aadhar number',
+    };
+    const missing = Object.keys(labels).filter((k) => !data[k]);
+    if (missing.length) {
+        throw badRequest(`Please fill in: ${missing.map((k) => labels[k]).join(', ')}`);
+    }
+
+    if (!/^\d{10}$/.test(data.contactNumber)) throw badRequest('Contact number must be 10 digits');
+    if (!/^\d{12}$/.test(data.aadharNumber)) throw badRequest('Aadhar number must be 12 digits');
+
+    const mark = Number(data.twelfthMark);
+    if (!Number.isFinite(mark) || mark < 0 || mark > 100) {
+        throw badRequest('12th mark must be a percentage between 0 and 100');
+    }
+    data.twelfthMark = mark;
+
+    const dob = new Date(data.dob);
+    if (Number.isNaN(dob.getTime()) || dob > new Date()) throw badRequest('Please enter a valid date of birth');
+    data.dob = dob;
+
+    // One active application per course
+    const existing = await Admission.findOne({
+        studentId: student._id,
+        course: new RegExp(`^${escapeRegex(data.course)}$`, 'i'),
+        status: { $nin: CLOSED_STATUSES },
+    });
+    if (existing) throw badRequest('You already have an application for this course');
+
+    // Seat check (only when the course is set up in the Seat Matrix)
+    const courseDoc = await findCourseByName(data.course);
+    if (courseDoc && courseDoc.totalSeats > 0 && courseDoc.filledSeats >= courseDoc.totalSeats) {
+        throw badRequest(`No seats left in ${courseDoc.name}`);
+    }
+
+    return { data, courseDoc };
+};
+
+/** Create the Admission record from prepared data and notify dashboards. */
+const createAdmissionRecord = async (student, { data, courseDoc }, io) => {
+    const admission = await Admission.create({
+        studentId: student._id,
+        studentName: student.name,
+        email: student.email,
+        ...data,
+        course: courseDoc ? courseDoc.name : data.course,
+        ...computeFees(data.course, data.department, courseDoc),
+    });
+
+    // Only ids go over the socket: every connected browser receives it.
+    if (io) io.emit('new_application', { _id: admission._id });
+    return admission;
+};
+
+// @desc    Create a new admission application (JSON, no documents)
 // @route   POST /api/applications
 // @access  Private/Student
 const createApplication = asyncHandler(async (req, res) => {
-    // 1. Check if user is logged in
-    if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user missing' });
-    }
-
-    const {
-        department, course, studentName, contactNumber, twelfthMark,
-        twelfthGroup, schoolName, fatherName, motherName, dob, email, aadharNumber
-    } = req.body;
-
-    // 2. Validate all required fields
-    const required = [
-        'department', 'course', 'studentName', 'contactNumber',
-        'twelfthMark', 'twelfthGroup', 'schoolName', 'fatherName',
-        'motherName', 'dob', 'email', 'aadharNumber'
-    ];
-
-    const missing = required.filter(field => !req.body[field] && req.body[field] !== 0);
-    if (missing.length > 0) {
-        return res.status(400).json({ message: `Missing fields: ${missing.join(', ')}` });
-    }
-
-    // 3. Prevent duplicate applications
-    const alreadyApplied = await Admission.findOne({
-        studentId: req.user._id,
-        course,
-        department
-    });
-
-    if (alreadyApplied) {
-        return res.status(400).json({ message: 'You already have an application for this course' });
-    }
-
-    // 4. Create and Save
-    try {
-        const admission = new Admission({
-            studentId: req.user._id,
-            ...req.body,
-            twelfthMark: Number(twelfthMark)
-        });
-
-        console.log("Saving admission to DB...");
-        const savedApplication = await admission.save();
-
-        console.log("✅ Admission Saved Successfully!");
-
-        // 5. Emit real-time notification to admin
-        if (req.io) {
-            req.io.emit('new_application', savedApplication.toObject());
-        }
-
-        return res.status(201).json(savedApplication);
-    } catch (error) {
-        console.error("❌ Admission Save Error:", error);
-        if (error.name === 'ValidationError') {
-            const msg = Object.values(error.errors).map(e => e.message).join(', ');
-            return res.status(400).json({ message: `Validation Error: ${msg}` });
-        }
-        return res.status(500).json({ message: 'Server error saving application', error: error.message });
-    }
+    const prepared = await prepareApplication(req.user, req.body);
+    const admission = await createAdmissionRecord(req.user, prepared, req.io);
+    res.status(201).json(admission);
 });
 
 // @desc    Get logged in student's applications
 // @route   GET /api/applications/my
 // @access  Private/Student
 const getMyApplications = asyncHandler(async (req, res) => {
-    const applications = await Admission.find({ studentId: req.user._id });
+    const applications = await Admission.find({ studentId: req.user._id }).sort({ createdAt: -1 });
     res.json(applications);
 });
 
-// @desc    Get all admission applications (Admin/Staff)
+// @desc    Get all admission applications
 // @route   GET /api/applications
-// @access  Private/Admin
+// @access  Private/Staff or Admin
 const getApplications = asyncHandler(async (req, res) => {
     const applications = await Admission.find({})
-        .populate('studentId', 'name email contactNumber')
+        .populate('studentId', 'name email contactNumber communityCertificate marksheet')
         .sort({ createdAt: -1 });
     res.json(applications);
 });
 
 // @desc    Get application by ID
 // @route   GET /api/applications/:id
-// @access  Private
+// @access  Private (owner, staff or admin)
 const getApplicationById = asyncHandler(async (req, res) => {
     const application = await Admission.findById(req.params.id).populate('studentId', 'name email');
     if (!application) return res.status(404).json({ message: 'Application not found' });
 
-    // Authorization check
-    const isAdmin = req.userType === 'admin' || req.user.role === 'admin' || req.user.role === 'staff';
+    const isOffice = req.userType === 'admin' || req.userType === 'staff';
     const isOwner = application.studentId && application.studentId._id.toString() === req.user._id.toString();
-
-    if (isAdmin || isOwner) {
-        return res.json(application);
-    }
+    if (isOffice || isOwner) return res.json(application);
     return res.status(403).json({ message: 'Not authorized to view this application' });
 });
 
-// @desc    Update application status
+// @desc    Update application status and remarks
 // @route   PUT /api/applications/:id/status
-// @access  Private/Admin
+// @access  Private/Staff or Admin
 const updateApplicationStatus = asyncHandler(async (req, res) => {
     const { status, adminComments } = req.body;
     const application = await Admission.findById(req.params.id);
     if (!application) return res.status(404).json({ message: 'Application not found' });
 
-    application.status = status || application.status;
-    application.adminComments = adminComments || application.adminComments;
+    if (status !== undefined) {
+        if (!STATUSES.includes(status)) throw badRequest(`Status must be one of: ${STATUSES.join(', ')}`);
+        application.status = status;
+    }
+    if (adminComments !== undefined) {
+        application.adminComments = String(adminComments).trim().slice(0, 1000);
+    }
     const updated = await application.save();
 
-    if (req.io) req.io.emit('status_updated', updated.toObject());
+    await Student.updateOne({ _id: application.studentId }, { status: updated.status });
+
+    if (req.io) {
+        req.io.emit('status_updated', {
+            _id: updated._id,
+            studentId: updated.studentId,
+            status: updated.status,
+        });
+    }
     res.json(updated);
 });
 
-// @desc    Update payment status
+// @desc    DEMO payment for development without Razorpay keys.
+//          Disabled in production and whenever Razorpay is configured.
 // @route   PUT /api/applications/:id/pay
-// @access  Private/Student
+// @access  Private/Student (owner)
 const updatePaymentStatus = asyncHandler(async (req, res) => {
-    const application = await Admission.findById(req.params.id);
-    if (!application) return res.status(404).json({ message: 'Application not found' });
-
-    if (application.studentId.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: 'Not authorized' });
+    if (razorpay.isConfigured() || process.env.NODE_ENV === 'production') {
+        throw badRequest('Please pay online through Razorpay');
     }
+    const method = String(req.body.paymentMethod || 'DEMO').toUpperCase();
+    if (!PAYMENT_METHODS.includes(method)) throw badRequest('Unknown payment method');
 
-    const oldPaymentStatus = application.paymentStatus;
-
-    application.paymentStatus = 'Paid';
-    application.paymentMethod = req.body.paymentMethod || 'Online';
-    const updated = await application.save();
-
-    // ── Seat Management Logic (Now on Payment) ──
-    if (oldPaymentStatus !== 'Paid') {
-        const courseDoc = await Course.findOne({ name: application.course });
-        if (courseDoc) {
-            courseDoc.filledSeats = (courseDoc.filledSeats || 0) + 1;
-            await courseDoc.save();
-
-            // Emit update for real-time seat tracking
-            if (req.io) req.io.emit('seats_updated', { course: courseDoc.name, filledSeats: courseDoc.filledSeats });
-        }
-    }
-
+    const application = await loadPayableApplication(req.params.id, req.user._id);
+    const { application: updated } = await markApplicationPaid(
+        application._id,
+        { method, amount: application.totalFees },
+        req.io
+    );
     res.json(updated);
 });
 
@@ -160,6 +190,8 @@ const getAdmissionCount = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+    prepareApplication,
+    createAdmissionRecord,
     createApplication,
     getMyApplications,
     getApplications,

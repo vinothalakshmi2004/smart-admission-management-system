@@ -5,7 +5,17 @@ const ContactMessage = require('../models/ContactMessage');
 // @route   POST /api/contact
 // @access  Public
 const submitContactForm = asyncHandler(async (req, res) => {
-    const { name, email, mobile, subject, message } = req.body;
+    const [name, email, mobile, subject, message] = ['name', 'email', 'mobile', 'subject', 'message']
+        .map((f) => String(req.body[f] || '').trim());
+
+    if (!name || !email || !mobile || !subject || !message) {
+        res.status(400);
+        throw new Error('Please fill in name, email, mobile, subject and message');
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+        res.status(400);
+        throw new Error('Mobile number must be 10 digits');
+    }
 
     const contact = await ContactMessage.create({
         name,
@@ -38,7 +48,13 @@ const updateMessageStatus = asyncHandler(async (req, res) => {
     const message = await ContactMessage.findById(req.params.id);
 
     if (message) {
-        message.status = req.body.status || message.status;
+        if (req.body.status !== undefined) {
+            if (!['New', 'Replied'].includes(req.body.status)) {
+                res.status(400);
+                throw new Error('Status must be New or Replied');
+            }
+            message.status = req.body.status;
+        }
         const updatedMessage = await message.save();
         res.json(updatedMessage);
     } else {

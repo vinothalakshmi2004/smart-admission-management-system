@@ -4,15 +4,15 @@ import { FaMapMarkerAlt, FaExternalLinkAlt } from 'react-icons/fa';
 const About = () => {
   return (
     <div className="container mx-auto px-4 py-16 about-page">
-      <h1 className="text-4xl font-bold text-center mb-10 text-primary uppercase font-serif tracking-tight">
-        About RVS College of Arts & Science
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 text-primary uppercase font-serif tracking-tight">
+        About RVS College of Arts and Science
       </h1>
 
       {/* History */}
-      <div className="bg-white p-8 rounded-lg shadow-md mb-10">
+      <div className="bg-white p-5 sm:p-8 rounded-lg shadow-md mb-10">
         <h2 className="section-title">Our History</h2>
         <p className="section-text">
-          Established in 1990, Smart College of Arts & Science is a reputed institution
+          Established in 1986, RVS College of Arts and Science is a reputed institution
           committed to providing quality higher education. The college has consistently
           focused on academic excellence, character building, and holistic student development.
         </p>
@@ -45,10 +45,10 @@ const About = () => {
       </div>
 
       {/* Facilities */}
-      <div className="bg-white p-8 rounded-lg shadow-md mb-10">
+      <div className="bg-white p-5 sm:p-8 rounded-lg shadow-md mb-10">
         <h2 className="section-title">Campus & Facilities</h2>
         <p className="section-text">
-          Smart College provides a student-friendly campus with modern infrastructure
+          RVS College of Arts and Science provides a student-friendly campus with modern infrastructure
           including smart classrooms, well-equipped laboratories, a digital library,
           seminar halls, and sports facilities.
         </p>
@@ -68,10 +68,10 @@ const About = () => {
       </div>
 
       {/* Location Section */}
-      <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 animate-fadeIn group">
+      <div className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 animate-fadeIn group">
         <div className="flex items-center gap-6">
           <div className="bg-primary/10 p-5 rounded-3xl group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-lg">
-            <FaMapMarkerAlt className="text-3xl" />
+            <FaMapMarkerAlt className="text-2xl md:text-3xl" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter italic font-serif">
@@ -87,7 +87,7 @@ const About = () => {
           href="https://maps.app.goo.gl/KnWjBE3f41ap3fBi6"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full md:w-auto flex items-center justify-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-primary transition-all duration-300 shadow-xl active:scale-95 group/btn"
+          className="w-full md:w-auto flex items-center justify-center gap-3 bg-gray-900 text-white px-5 sm:px-8 md:px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-primary transition-all duration-300 shadow-xl active:scale-95 group/btn"
         >
           View on Google Maps
           <FaExternalLinkAlt className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />

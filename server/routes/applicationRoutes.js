@@ -9,24 +9,19 @@ const {
     updatePaymentStatus,
     getAdmissionCount,
 } = require('../controllers/applicationController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, staffOrAdmin, studentOnly } = require('../middleware/authMiddleware');
 
-// Public route for counter
+// Public route for the live counter
 router.get('/stats/count', getAdmissionCount);
 
-// POST /api/applications — JSON body
 router
     .route('/')
-    .post(protect, createApplication)
-    .get(protect, admin, getApplications);
+    .post(protect, studentOnly, createApplication)
+    .get(protect, staffOrAdmin, getApplications);
 
-router.route('/my').get(protect, getMyApplications);
-
-router
-    .route('/:id')
-    .get(protect, getApplicationById);
-
-router.route('/:id/status').put(protect, admin, updateApplicationStatus);
-router.route('/:id/pay').put(protect, updatePaymentStatus);
+router.get('/my', protect, studentOnly, getMyApplications);
+router.get('/:id', protect, getApplicationById);
+router.put('/:id/status', protect, staffOrAdmin, updateApplicationStatus);
+router.put('/:id/pay', protect, studentOnly, updatePaymentStatus);
 
 module.exports = router;

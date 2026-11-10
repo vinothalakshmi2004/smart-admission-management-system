@@ -1,17 +1,13 @@
 import React, { useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import MainLayout from './components/MainLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import AuthContext, { AuthProvider } from './context/AuthContext';
+import AuthContext from './context/AuthContext';
 import Contact from './pages/Contact';
-import ApplicationForm from './pages/ApplicationForm';
-import ApplicationStatus from './pages/ApplicationStatus';
 import About from './pages/About';
 import Courses from './pages/Courses';
 import StaffLogin from './pages/StaffLogin';
@@ -25,6 +21,8 @@ import UGCProjects from './pages/research/UGCProjects';
 import Payment from './pages/student/Payment';
 import Brochure from './pages/Brochure';
 import Enquiry from './pages/Enquiry';
+import NotFound from './pages/NotFound';
+import ScrollToTop from './components/ScrollToTop';
 
 
 // Private Route Component
@@ -55,29 +53,10 @@ const PrivateRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-// Apply logic: Login Required Before Application
-const ApplyRedirect = () => {
-  const { user, loading } = useContext(AuthContext);
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen font-black text-primary animate-pulse">VERIFYING AUTHENTICATION...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/student-login" />;
-  }
-
-  if (user.role === 'student') {
-    return <Navigate to="/student/dashboard" />;
-  }
-
-  return <Navigate to="/" />;
-};
-
 const App = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
+        <ScrollToTop />
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
@@ -100,7 +79,7 @@ const App = () => {
             {/* Admission and application access is consolidated under /student-login */}
 
             {/* Application redirect to dashboard */}
-            <Route path="/apply" element={<Navigate to="/student/dashboard" />} />
+            <Route path="/apply" element={<PrivateRoute allowedRoles={['student']}><Navigate to="/student/dashboard" /></PrivateRoute>} />
 
             {/* Protected Student Routes */}
             <Route
@@ -145,10 +124,11 @@ const App = () => {
                 </PrivateRoute>
               }
             />
+
+            {/* Unknown addresses */}
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-        <ToastContainer />
-      </AuthProvider>
     </BrowserRouter>
   );
 };

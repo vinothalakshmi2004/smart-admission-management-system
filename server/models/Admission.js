@@ -92,6 +92,11 @@ const admissionSchema = new mongoose.Schema({
         type: String,
         default: 'None',
     },
+    // Online payment (Razorpay)
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
+    paidAmount: { type: Number },
+    paidAt: { type: Date },
     adminComments: {
         type: String,
         default: '',

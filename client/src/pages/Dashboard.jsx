@@ -26,7 +26,7 @@ const Dashboard = () => {
         return <AdminDashboard />;
 
     } else {
-        return <div className="p-20 text-center font-bold text-red-600">Unauthorized Access or Invalid Role</div>;
+        return <div className="p-8 sm:p-12 md:p-20 text-center font-bold text-red-600">Unauthorized Access or Invalid Role</div>;
     }
 };
 

@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaUserGraduate, FaClock, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import { FaUserGraduate, FaClock, FaExclamationTriangle } from "react-icons/fa";
+import AuthContext from '../context/AuthContext';
+import { API_URL, SOCKET_URL } from '../config';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/courses");
+        const { data } = await axios.get(`${API_URL}/api/courses`);
         setCourses(data);
         setLoading(false);
       } catch (error) {
@@ -18,7 +24,25 @@ const Courses = () => {
       }
     };
     fetchCourses();
+
+    // Live seat updates
+    const socket = io(SOCKET_URL);
+    socket.on('seats_updated', ({ course, filledSeats } = {}) => {
+      if (!course || typeof filledSeats !== 'number') return;
+      const target = String(course).toLowerCase();
+      setCourses((prev) => prev.map((c) =>
+        c.name?.toLowerCase() === target ? { ...c, filledSeats } : c
+      ));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
+
+  const handleApply = () => {
+    navigate(user?.role === 'student' ? '/student/dashboard' : '/student-login');
+  };
 
   if (loading) {
     return (
@@ -29,10 +53,6 @@ const Courses = () => {
     );
   }
 
-  // Helper to categorize courses if needed (grouped by duration or keyword)
-  const ugCourses = courses.filter(c => c.duration?.includes('Years'));
-  const pgCourses = courses.filter(c => c.duration?.includes('2 Years') || c.name?.includes('M.') || c.name?.includes('MBA') || c.name?.includes('MCA'));
-
   const renderCourseCard = (course) => {
     const filled = course.filledSeats || 0;
     const total = course.totalSeats || 60;
@@ -41,7 +61,7 @@ const Courses = () => {
     const isLow = available > 0 && available <= 5;
 
     return (
-      <div key={course._id} className="group bg-white rounded-[32px] p-8 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col justify-between">
+      <div key={course._id} className="group bg-white rounded-[32px] p-5 sm:p-8 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col justify-between">
         {/* Decorative Indicator */}
         <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 opacity-10 rounded-full transition-transform group-hover:scale-150 duration-700 ${percent > 80 ? 'bg-red-500' : 'bg-primary'}`}></div>
 
@@ -65,9 +85,13 @@ const Courses = () => {
           <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight mb-2 group-hover:text-primary transition-colors leading-tight">
             {course.name}
           </h3>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center mb-6">
-            <FaClock className="mr-2" /> {course.duration} Program
-          </p>
+          {course.duration ? (
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center mb-6">
+              <FaClock className="mr-2" /> {course.duration} Program
+            </p>
+          ) : (
+            <div className="mb-6"></div>
+          )}
 
           <div className="bg-neutralLight/50 p-6 rounded-[24px] border border-gray-50 mb-6">
             <div className="flex justify-between items-end mb-3">
@@ -91,7 +115,7 @@ const Courses = () => {
           </div>
         </div>
 
-        <button className="w-full py-4 rounded-2xl bg-gray-900 group-hover:bg-primary text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-xl border-none cursor-pointer">
+        <button type="button" onClick={handleApply} className="w-full py-4 rounded-2xl bg-gray-900 group-hover:bg-primary text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-xl border-none cursor-pointer">
           Apply for 2026-27
         </button>
       </div>
@@ -108,7 +132,7 @@ const Courses = () => {
               Live Academic Enrollment Status
             </p>
           </div>
-          <h1 className="text-6xl font-black text-gray-800 uppercase tracking-tighter mb-4 italic font-serif leading-none">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-800 uppercase tracking-tighter mb-4 italic font-serif leading-none">
             Choose Your <span className="text-primary font-sans not-italic tracking-normal">Future</span>
           </h1>
           <p className="text-gray-400 font-bold uppercase tracking-widest text-xs max-w-2xl mx-auto italic opacity-70">
@@ -123,7 +147,7 @@ const Courses = () => {
               <div className="h-8 w-1.5 bg-primary"></div>
               <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter italic">Flagship <span className="text-primary tracking-normal">Programs</span></h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
               {courses.map(course => renderCourseCard(course))}
             </div>
           </section>

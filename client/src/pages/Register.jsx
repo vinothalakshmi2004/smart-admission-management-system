@@ -21,15 +21,23 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (password.length < 6) {
+            toast.error('Password must be at least 6 characters');
+            return;
+        }
         if (password !== confirmPassword) {
             toast.error('Passwords do not match');
+            return;
+        }
+        if (!/^\d{10}$/.test(contactNumber)) {
+            toast.error('Contact number must be 10 digits');
             return;
         }
 
         const result = await register(name, email, contactNumber, password);
         if (result.success) {
-            toast.success('Account created successfully! Please login.');
-            navigate('/student-login');
+            toast.success('Account created successfully! You can now apply.');
+            navigate('/student/dashboard');
         } else {
             toast.error(result.message);
         }
@@ -37,12 +45,12 @@ const Register = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-neutralLight py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white p-12 rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden animate-fadeIn">
+            <div className="max-w-md w-full bg-white p-5 sm:p-8 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden animate-fadeIn">
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 bg-primary opacity-5 rounded-full pointer-events-none"></div>
 
                 <div className="relative z-10 text-center">
-                    <h2 className="text-4xl font-black text-secondary tracking-tight font-serif italic uppercase">Start Journey</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-secondary tracking-tight font-serif italic uppercase">Start Journey</h2>
                     <p className="mt-2 text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] italic">Enrollment Registration Portal</p>
                     <div className="h-1.5 w-16 bg-primary mx-auto mt-4 rounded-full shadow-sm opacity-20"></div>
                 </div>

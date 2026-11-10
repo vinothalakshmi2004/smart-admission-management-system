@@ -5,12 +5,13 @@ const {
     getContactMessages,
     updateMessageStatus,
 } = require('../controllers/contactController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, staffOrAdmin } = require('../middleware/authMiddleware');
+const { formLimiter } = require('../middleware/rateLimiters');
 
 router.route('/')
-    .post(submitContactForm)
-    .get(protect, admin, getContactMessages);
+    .post(formLimiter, submitContactForm)
+    .get(protect, staffOrAdmin, getContactMessages);
 
-router.route('/:id').put(protect, admin, updateMessageStatus);
+router.route('/:id').put(protect, staffOrAdmin, updateMessageStatus);
 
 module.exports = router;

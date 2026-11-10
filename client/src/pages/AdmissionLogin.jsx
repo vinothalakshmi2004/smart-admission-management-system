@@ -58,16 +58,16 @@ const AdmissionLogin = () => {
     return (
         <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-neutralLight">
             {/* Login Card */}
-            <div className="w-full max-w-md bg-white p-12 rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden animate-fadeIn">
+            <div className="w-full max-w-md bg-white p-5 sm:p-8 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl space-y-8 border-t-8 border-primary relative overflow-hidden animate-fadeIn">
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 bg-primary opacity-5 rounded-full pointer-events-none"></div>
 
                 {/* Icon */}
                 <div className="relative z-10 flex flex-col items-center">
-                    <div className="mx-auto h-20 w-20 bg-primary text-white rounded-3xl flex items-center justify-center text-4xl shadow-2xl mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                    <div className="mx-auto h-20 w-20 bg-primary text-white rounded-3xl flex items-center justify-center text-2xl sm:text-3xl md:text-4xl shadow-2xl mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
                         <FaGraduationCap />
                     </div>
-                    <h1 className="text-4xl font-black text-secondary tracking-tight font-serif italic uppercase text-center">Admission <span className="text-primary font-sans not-italic tracking-normal">Portal</span></h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-secondary tracking-tight font-serif italic uppercase text-center">Admission <span className="text-primary font-sans not-italic tracking-normal">Portal</span></h1>
                     <p className="mt-2 text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] italic text-center">Secure Applicant Authentication</p>
                     <div className="h-1.5 w-16 bg-primary mt-4 rounded-full shadow-sm opacity-20"></div>
                 </div>
@@ -76,7 +76,7 @@ const AdmissionLogin = () => {
                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
                     {/* Email / Register Number */}
                     <div className="relative group">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-2 px-1">Email / Register Identifier</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-2 px-1">Registered Email</label>
                         <div className="relative">
                             <FaUserShield
                                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${errors.email ? 'text-red-500' : 'text-gray-300 group-focus-within:text-red-500'}`}
@@ -129,10 +129,10 @@ const AdmissionLogin = () => {
                     {/* Forgot Password */}
                     <div className="flex justify-end p-1">
                         <Link
-                            to="/forgot-password"
+                            to="/contact"
                             className="text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-red-600 transition-colors duration-200"
                         >
-                            Forgot Credentials?
+                            Forgot password? Contact the admission office
                         </Link>
                     </div>
 

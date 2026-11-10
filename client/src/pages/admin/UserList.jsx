@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../../context/AuthContext';
 import { FaUserGraduate, FaUserTie, FaEnvelope, FaPhone, FaTrash } from 'react-icons/fa';
+import { API_URL } from '../../config';
 
 const UserList = ({ role }) => {
     const [users, setUsers] = useState([]);
@@ -20,7 +21,7 @@ const UserList = ({ role }) => {
                 },
             };
             const roleQuery = role ? `?role=${role}` : '';
-            const { data } = await axios.get(`http://localhost:5000/api/users${roleQuery}`, config);
+            const { data } = await axios.get(`${API_URL}/api/users${roleQuery}`, config);
             setUsers(data);
             setLoading(false);
         } catch (error) {
@@ -29,11 +30,11 @@ const UserList = ({ role }) => {
         }
     };
 
-    if (loading) return <div className="p-10 text-center animate-pulse">Loading {role}s...</div>;
+    if (loading) return <div className="p-5 sm:p-8 md:p-10 text-center animate-pulse">Loading {role}s...</div>;
 
     return (
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 animate-fadeIn">
-            <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter font-serif italic mb-10 flex items-center">
+        <div className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 animate-fadeIn">
+            <h2 className="text-2xl md:text-3xl font-black text-gray-800 uppercase tracking-tighter font-serif italic mb-8 md:mb-10 flex flex-wrap items-center gap-y-2 break-words">
                 <div className="bg-primary text-white p-4 rounded-2xl mr-4 shadow-xl transform -rotate-3">
                     {role === 'student' ? <FaUserGraduate size={24} /> : <FaUserTie size={24} />}
                 </div>
@@ -42,7 +43,7 @@ const UserList = ({ role }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {users.map((u) => (
-                    <div key={u._id} className="p-8 bg-neutralLight/50 border border-gray-100 rounded-[32px] hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+                    <div key={u._id} className="p-5 sm:p-8 bg-neutralLight/50 border border-gray-100 rounded-[32px] hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
                         <div className="absolute top-0 right-0 -mt-2 -mr-2 h-20 w-20 bg-primary opacity-5 rounded-full pointer-events-none group-hover:scale-125 transition-transform"></div>
 
                         <div>

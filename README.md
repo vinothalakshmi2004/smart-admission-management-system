@@ -19,18 +19,19 @@ Built with the **MERN** stack (MongoDB, Express, React, Node.js) and **Socket.io
 - Fill the **online application form** with document upload (JPG, PNG, PDF)
 - Track **application status**
 - Check **seat availability** and **scholarship eligibility**
-- Make the **fee payment** (UPI / card / net banking flow)
+- Pay the **admission fees online through Razorpay** (card / UPI / net banking)
 - Download PDF receipts (jsPDF)
 
 ### Admin portal
 - Dashboard with admission statistics
-- Review, approve or reject **applications** and add comments
+- Review, approve or reject **applications**, add remarks and open the uploaded **documents**
 - Manage **courses and seats**
 - Manage **staff, admins and students**
 - View and manage **enquiries** and **contact messages**
 
 ### Staff portal
-- Staff dashboard to view and process admissions
+- Review admissions (approve / reject, remarks, view documents)
+- Follow up enquiries and contact messages
 
 ### Platform
 - JWT authentication with role-based access control (student / staff / admin)
@@ -96,12 +97,18 @@ npm run dev               # starts the API on http://localhost:5000
 
 `.env` variables:
 
-| Variable     | Description                          |
-|--------------|--------------------------------------|
-| `NODE_ENV`   | `development` or `production`        |
-| `PORT`       | API port (default `5000`)            |
-| `MONGO_URI`  | MongoDB connection string            |
-| `JWT_SECRET` | Secret key used to sign JWT tokens   |
+| Variable         | Required | Description |
+|------------------|----------|-------------|
+| `NODE_ENV`       | Yes      | `development` or `production` |
+| `PORT`           | No       | API port (default `5000`) |
+| `MONGO_URI`      | Yes      | MongoDB connection string |
+| `JWT_SECRET`     | Yes      | Long random secret used to sign login tokens |
+| `ADMIN_EMAIL`    | Production | Email of the first admin account |
+| `ADMIN_PASSWORD` | Production | Password of the first admin account (min 6 characters) |
+| `ADMIN_NAME`     | No       | Display name of the first admin |
+| `CLIENT_URL`     | No       | Allowed browser origin(s), only if the React app is hosted on another domain |
+| `RAZORPAY_KEY_ID` | For payments | Razorpay key id (`rzp_test_...` for test mode) |
+| `RAZORPAY_KEY_SECRET` | For payments | Razorpay key secret (keep private, server only) |
 
 ### 3. Set up the frontend
 Open a new terminal:
@@ -112,15 +119,49 @@ npm run dev               # starts the app on http://localhost:5173
 ```
 
 ### 4. Log in
-On first start, the server creates a default admin account:
+When no admin exists, the server creates one on start:
 
-| Role  | Email           | Password  |
-|-------|-----------------|-----------|
-| Admin | `rvs@admin.com` | `rvs@123` |
+- **Production:** from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` (nothing is created if they are missing).
+- **Development only:** if those are not set, `rvs@admin.com` / `rvs@123`.
 
-> Change this password after the first login before using the system with real data.
+Admins and staff can change their password from the dashboard (**Change Password**).
 
-Students can create an account from the **Register** page.
+### 5. Set up courses and seats
+Log in as admin → **Seat Matrix** → **Add Standard Courses** (adds every course on the application form with 60 seats), or run `npm run seed` in `server`. Adjust seats and the semester fee per course as needed.
+
+Students create their own account from the **Register** page.
+
+---
+
+## Deployment (going live)
+
+The Express server can serve the built React app, so the whole system runs as **one Node.js service** plus a MongoDB database (for example MongoDB Atlas).
+
+1. Create a MongoDB Atlas cluster and copy its connection string.
+2. On your host (Render, Railway, a VPS, etc.) set the environment variables: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+3. Build command: `npm run build` (from the repository root).
+4. Start command: `npm start`.
+5. Open the site, log in as admin, change the password, and add courses in **Seat Matrix**.
+
+Notes:
+- Uploaded documents are stored in `server/uploads/`. Use a host with a persistent disk (or mount a volume there), otherwise files are lost on redeploy.
+- If you host the React app separately, set `VITE_API_URL` in `client/.env` before building and `CLIENT_URL` on the server.
+- Fees are paid online through **Razorpay** (see below). Without Razorpay keys, a demo payment works only in development; in production the Pay button is disabled.
+
+## Online payment (Razorpay)
+
+1. Sign up at [razorpay.com](https://razorpay.com), switch the dashboard to **Test Mode**, then **Account & Settings → API Keys → Generate Key**.
+2. Put the keys in `server/.env` (never in the client):
+   ```
+   RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+   RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxx
+   ```
+3. Restart the server. On the payment page the student clicks **Pay securely**; Razorpay Checkout opens with card, UPI and net banking.
+4. In test mode no real money moves. Use Razorpay's test details, for example UPI ID `success@razorpay` (see Razorpay docs → *Test Card Details* for cards).
+
+How it is secured: the server creates the Razorpay order from the fees stored on the application, then verifies the payment signature and re-checks the payment (order, amount, captured) with Razorpay before marking the fees **Paid** and filling the seat.
+
+To go live with real money: complete Razorpay KYC/activation, generate **Live** keys (`rzp_live_...`) and replace the test keys on the server.
 
 ---
 

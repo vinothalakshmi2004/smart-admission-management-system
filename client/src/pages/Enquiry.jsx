@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import AdmissionSidebar from '../components/AdmissionSidebar';
 import { FaUser, FaPhoneAlt, FaEnvelope, FaCalendarAlt, FaSchool, FaBookOpen, FaChevronLeft, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
+import { API_URL } from '../config';
 
 const Enquiry = ({ isInternal = false }) => {
     const navigate = useNavigate();
@@ -29,6 +30,11 @@ const Enquiry = ({ isInternal = false }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!/^[0-9]{10}$/.test(formData.mobileNumber)) {
+            toast.error("Please enter a valid 10-digit mobile number.");
+            return;
+        }
+
         // Course Field Validation
         const newErrors = {};
         if (!formData.twelfth_group) newErrors.twelfth_group = "12th Group is required";
@@ -43,7 +49,7 @@ const Enquiry = ({ isInternal = false }) => {
         setErrors({});
 
         try {
-            await axios.post('http://localhost:5000/api/enquiries', formData);
+            await axios.post(`${API_URL}/api/enquiries`, formData);
             toast.success("Enquiry Submitted Successfully", {
                 position: "top-center",
                 autoClose: 3000,
@@ -69,12 +75,12 @@ const Enquiry = ({ isInternal = false }) => {
     const content = (
         <div className="flex-grow animate-fadeIn">
             <div className="mb-10">
-                <h1 className="text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic text-gray-800 uppercase tracking-tighter border-b-4 border-[#8B0000] pb-2 inline-block">
                     Quick Enquiry
                 </h1>
             </div>
 
-            <div className="bg-white rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 p-8 lg:p-12">
+            <div className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 p-8 lg:p-12">
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Academic & Personal Profile */}
                     <div>
@@ -97,7 +103,8 @@ const Enquiry = ({ isInternal = false }) => {
                                 <div className="relative group">
                                     <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" />
                                     <input
-                                        type="text" name="mobileNumber" maxLength="10" required placeholder="98XXXXXXXX"
+                                        type="tel" name="mobileNumber" maxLength="10" required placeholder="98XXXXXXXX"
+                                        pattern="[0-9]{10}" inputMode="numeric" title="Enter a 10-digit mobile number"
                                         className="w-full bg-gray-50 border-2 border-transparent p-4 pl-12 rounded-2xl focus:border-[#8B0000] outline-none font-bold transition-all"
                                         value={formData.mobileNumber} onChange={handleChange}
                                     />
@@ -202,7 +209,7 @@ const Enquiry = ({ isInternal = false }) => {
     return (
         <div className="bg-[#FAF9F6] min-h-screen pt-32 pb-20">
             <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-10">
                     <AdmissionSidebar />
                     {content}
                 </div>

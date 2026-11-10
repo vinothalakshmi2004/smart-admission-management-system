@@ -71,10 +71,10 @@ const ScholarshipChecker = () => {
     return (
         <div className="mb-12 animate-fadeIn">
             {/* main section card */}
-            <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 group mb-4">
+            <div className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8 group mb-4">
                 <div className="flex items-center gap-6">
                     <div className="bg-secondary/10 p-5 rounded-3xl group-hover:bg-secondary group-hover:text-white transition-all duration-500 shadow-lg">
-                        <FaHandHoldingUsd className="text-3xl" />
+                        <FaHandHoldingUsd className="text-2xl md:text-3xl" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter italic font-serif">
@@ -89,7 +89,7 @@ const ScholarshipChecker = () => {
                 {!showForm && !results && (
                     <button
                         onClick={() => setShowForm(true)}
-                        className="w-full md:w-auto flex items-center justify-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-secondary transition-all duration-300 shadow-xl active:scale-95 group/btn cursor-pointer border-none"
+                        className="w-full md:w-auto flex items-center justify-center gap-3 bg-gray-900 text-white px-5 sm:px-8 md:px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-secondary transition-all duration-300 shadow-xl active:scale-95 group/btn cursor-pointer border-none"
                     >
                         Check Eligibility
                     </button>
@@ -98,7 +98,7 @@ const ScholarshipChecker = () => {
 
             {/* Form Modal/Section */}
             {showForm && (
-                <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12 animate-slideUp">
+                <div className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12 animate-slideUp">
                     <div className="flex items-center gap-3 mb-10 pb-6 border-b border-gray-100">
                         <FaWpforms className="text-secondary text-2xl" />
                         <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight">Eligibility Criteria Form</h3>
@@ -172,17 +172,17 @@ const ScholarshipChecker = () => {
                             </div>
                         </div>
 
-                        <div className="md:col-span-2 flex justify-end gap-4 mt-6">
+                        <div className="md:col-span-2 flex flex-wrap justify-end gap-3 sm:gap-4 mt-6">
                             <button
                                 type="button"
                                 onClick={() => setShowForm(false)}
-                                className="px-8 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all border-none cursor-pointer"
+                                className="px-5 sm:px-8 py-4 bg-gray-100 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all border-none cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-10 py-4 bg-secondary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-secondary/20 hover:bg-gray-900 transition-all active:scale-95 border-none cursor-pointer flex items-center gap-2"
+                                className="px-5 sm:px-8 md:px-10 py-4 bg-secondary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-secondary/20 hover:bg-gray-900 transition-all active:scale-95 border-none cursor-pointer flex items-center gap-2"
                             >
                                 Evaluate Profile <FaArrowRight />
                             </button>
@@ -193,8 +193,8 @@ const ScholarshipChecker = () => {
 
             {/* Results Display */}
             {results && (
-                <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12 animate-slideUp">
-                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
+                <div className="bg-white rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 p-8 md:p-12 animate-slideUp">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-10 pb-6 border-b border-gray-100">
                         <div className="flex items-center gap-3">
                             <FaCheckCircle className="text-green-500 text-2xl" />
                             <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight">Eligibility Results</h3>
@@ -226,9 +226,9 @@ const ScholarshipChecker = () => {
                         </div>
                     ) : (
                         <div className="text-center py-10">
-                            <FaTimesCircle className="text-red-500 text-6xl mb-4 opacity-20" />
+                            <FaTimesCircle className="text-red-500 text-4xl sm:text-5xl md:text-6xl mb-4 opacity-20" />
                             <h4 className="text-2xl font-black text-gray-400 uppercase italic">No Scholarships Available</h4>
-                            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-2 px-12 leading-relaxed">Your current profile does not meet our institutional scholarship criteria at this moment.</p>
+                            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-2 px-5 sm:px-8 md:px-12 leading-relaxed">Your current profile does not meet our institutional scholarship criteria at this moment.</p>
                         </div>
                     )}
                 </div>

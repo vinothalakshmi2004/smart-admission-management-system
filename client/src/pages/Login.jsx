@@ -42,7 +42,7 @@ const Login = () => {
 
                 {/* Page Title */}
                 <div className="text-center mb-10">
-                    <h1 className="text-4xl font-black italic text-gray-800 uppercase tracking-tighter inline-block font-serif">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic text-gray-800 uppercase tracking-tighter inline-block font-serif">
                         ADMISSION <span className="text-primary font-sans not-italic tracking-normal">TERMINAL</span>
                     </h1>
                     <div className="h-1.5 w-32 bg-primary mt-2 mx-auto rounded-full shadow-lg"></div>
@@ -64,7 +64,7 @@ const Login = () => {
                             <div className="max-w-md w-full animate-fadeIn">
                                 {/* Form Header */}
                                 <div className="mb-8">
-                                    <h2 className="text-center text-3xl font-black italic text-secondary tracking-tighter uppercase font-serif">
+                                    <h2 className="text-center text-2xl md:text-3xl font-black italic text-secondary tracking-tighter uppercase font-serif">
                                         Student Login
                                     </h2>
                                     <p className="mt-2 text-center text-[10px] font-black uppercase text-gray-400 tracking-widest">
@@ -75,16 +75,17 @@ const Login = () => {
                                 {/* Login Form */}
                                 <form className="space-y-6" onSubmit={handleSubmit}>
                                     <div className="space-y-4">
-                                        {/* Student ID */}
+                                        {/* Registered Email */}
                                         <div className="space-y-2">
                                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">
-                                                Student ID / Register Number
+                                                Registered Email
                                             </label>
                                             <div className="relative group">
                                                 <FaUserShield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-red-500 transition-colors" />
                                                 <input
-                                                    type="text"
-                                                    placeholder="ENTER YOUR REGISTER NUMBER"
+                                                    type="email"
+                                                    autoComplete="email"
+                                                    placeholder="ENTER YOUR REGISTERED EMAIL"
                                                     className="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-red-500 focus:bg-white outline-none font-bold transition-all uppercase placeholder:text-gray-200"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
@@ -115,10 +116,10 @@ const Login = () => {
                                     {/* Forgot Password */}
                                     <div className="flex justify-end">
                                         <Link
-                                            to="/forgot-password"
+                                            to="/contact"
                                             className="text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
                                         >
-                                            Forgot Credentials?
+                                            Forgot password? Contact the admission office
                                         </Link>
                                     </div>
 

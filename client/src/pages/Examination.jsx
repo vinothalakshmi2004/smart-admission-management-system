@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     FaInfoCircle, FaNewspaper, FaCalendarAlt, FaUserLock, FaPhoneAlt,
     FaCheckCircle, FaAward, FaUserCheck, FaGraduationCap, FaLayerGroup,
@@ -7,6 +8,15 @@ import {
 
 const Examination = () => {
     const [activeSection, setActiveSection] = useState('about');
+    const navigate = useNavigate();
+
+    const handleSidebarClick = (id) => {
+        if (id === 'login') return navigate('/student-login');
+        if (id === 'contact') return navigate('/contact');
+        setActiveSection(id);
+        const el = document.getElementById(`exam-${id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const sidebarItems = [
         { id: 'about', label: 'About Examination', icon: <FaInfoCircle /> },
@@ -28,7 +38,7 @@ const Examination = () => {
             {/* Hero Section */}
             <div className="bg-gradient-to-r from-white via-[#F5E6A1] to-white border-b-2 border-[#D4AF37]/30 py-16 px-4 mb-12 shadow-sm">
                 <div className="container mx-auto text-center animate-fadeIn">
-                    <h1 className="text-5xl font-black text-[#8B0000] font-serif uppercase tracking-tighter mb-4 drop-shadow-sm">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#8B0000] font-serif uppercase tracking-tighter mb-4 drop-shadow-sm">
                         Examination
                     </h1>
                     <nav className="flex justify-center items-center space-x-2 text-xs font-black uppercase tracking-widest text-[#D4AF37]">
@@ -53,7 +63,7 @@ const Examination = () => {
                             {sidebarItems.map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => setActiveSection(item.id)}
+                                    onClick={() => handleSidebarClick(item.id)}
                                     className={`w-full flex items-center p-4 rounded-2xl text-sm font-bold transition-all duration-300 group mb-1 ${activeSection === item.id
                                             ? 'bg-[#F5E6A1] text-[#8B0000] shadow-inner'
                                             : 'text-gray-600 hover:bg-gray-50'
@@ -69,11 +79,11 @@ const Examination = () => {
                     </div>
 
                     {/* Quick Link Card */}
-                    <div className="bg-[#8B0000] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden group">
-                        <FaAward className="absolute right-0 bottom-0 text-8xl opacity-10 transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform" />
+                    <div className="bg-[#8B0000] rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden group">
+                        <FaAward className="absolute right-0 bottom-0 text-5xl md:text-8xl opacity-10 transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform" />
                         <h4 className="font-serif font-black text-xl mb-4 leading-tight italic">Need Exam Assistance?</h4>
                         <p className="text-xs font-bold text-red-100 mb-6 italic opacity-80">General information and support for candidates.</p>
-                        <button className="bg-white text-[#8B0000] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-[#F5E6A1] transition-colors">
+                        <button type="button" onClick={() => navigate('/contact')} className="bg-white text-[#8B0000] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-[#F5E6A1] transition-colors">
                             Request Help
                         </button>
                     </div>
@@ -83,9 +93,9 @@ const Examination = () => {
                 <main className="lg:col-span-9 space-y-10">
 
                     {/* Section 1: All about Examinations */}
-                    <section className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 animate-slideDown">
+                    <section id="exam-about" className="scroll-mt-48 bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 animate-slideDown">
                         <div className="flex items-center mb-8 border-l-8 border-[#D4AF37] pl-6">
-                            <h2 className="text-3xl font-black text-gray-800 font-serif uppercase tracking-tight">
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-800 font-serif uppercase tracking-tight">
                                 <span className="text-[#D4AF37]">🔹</span> All about Examinations
                             </h2>
                         </div>
@@ -117,7 +127,7 @@ const Examination = () => {
                     </section>
 
                     {/* Section 2: COP */}
-                    <section className="bg-white p-10 rounded-[40px] shadow-xl border border-gray-100">
+                    <section className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-xl border border-gray-100">
                         <div className="flex items-center mb-8 border-l-8 border-[#D4AF37] pl-6">
                             <h2 className="text-2xl font-black text-gray-800 font-serif uppercase tracking-tight">
                                 Career Oriented Programme (COP)
@@ -139,8 +149,8 @@ const Examination = () => {
                                 ))}
                             </ul>
                             <div className="bg-[#D4AF37] p-1 rounded-[30px] shadow-lg">
-                                <div className="bg-white p-8 rounded-[28px] text-center">
-                                    <FaGraduationCap className="text-5xl text-[#D4AF37] mx-auto mb-4" />
+                                <div className="bg-white p-5 sm:p-8 rounded-[28px] text-center">
+                                    <FaGraduationCap className="text-3xl sm:text-4xl md:text-5xl text-[#D4AF37] mx-auto mb-4" />
                                     <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Enhance your</p>
                                     <h4 className="text-xl font-black text-[#8B0000] font-serif italic">Employability Skills</h4>
                                 </div>
@@ -151,7 +161,7 @@ const Examination = () => {
                     {/* Section 3 & 4: ALCTA & Attendance */}
                     <div className="grid md:grid-cols-2 gap-8">
                         {/* ALCTA */}
-                        <section className="bg-white p-10 rounded-[40px] shadow-xl border border-[#F5E6A1] relative overflow-hidden">
+                        <section className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-xl border border-[#F5E6A1] relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest rounded-bl-3xl">
                                 Special Subject
                             </div>
@@ -172,7 +182,7 @@ const Examination = () => {
                         </section>
 
                         {/* Attendance Requirements */}
-                        <section className="bg-white p-10 rounded-[40px] shadow-xl border border-gray-100">
+                        <section className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-xl border border-gray-100">
                             <h3 className="text-xl font-black text-gray-800 font-serif mb-6 uppercase tracking-tight flex items-center">
                                 <FaUserCheck className="mr-2 text-[#D4AF37]" size={20} /> Attendance Requirements
                             </h3>
@@ -198,20 +208,20 @@ const Examination = () => {
                     </div>
 
                     {/* Section 5: Passing Requirements */}
-                    <div className="bg-white p-10 rounded-[40px] shadow-2xl border-t-8 border-[#D4AF37]">
+                    <div className="bg-white p-5 sm:p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border-t-8 border-[#D4AF37]">
                         <div className="grid md:grid-cols-3 gap-8 items-center">
                             <div className="md:col-span-1 text-center md:text-left border-r border-[#D4AF37]/20">
                                 <h3 className="text-2xl font-black text-[#8B0000] font-serif uppercase tracking-tight leading-none mb-2">Passing</h3>
                                 <p className="text-xs font-black text-[#D4AF37] uppercase tracking-widest">Min Standards</p>
                             </div>
                             <div className="md:col-span-2 flex flex-wrap gap-4">
-                                <div className="bg-[#8B0000] text-white px-8 py-4 rounded-3xl shadow-lg transform -rotate-2">
+                                <div className="bg-[#8B0000] text-white px-5 sm:px-8 py-4 rounded-3xl shadow-lg transform -rotate-2">
                                     <span className="block text-[10px] uppercase font-black opacity-70">UG Course</span>
-                                    <span className="text-3xl font-black italic">40%</span>
+                                    <span className="text-2xl md:text-3xl font-black italic">40%</span>
                                 </div>
-                                <div className="bg-[#D4AF37] text-white px-8 py-4 rounded-3xl shadow-lg transform rotate-2">
+                                <div className="bg-[#D4AF37] text-white px-5 sm:px-8 py-4 rounded-3xl shadow-lg transform rotate-2">
                                     <span className="block text-[10px] uppercase font-black opacity-70">PG Course</span>
-                                    <span className="text-3xl font-black italic">50%</span>
+                                    <span className="text-2xl md:text-3xl font-black italic">50%</span>
                                 </div>
                                 <div className="bg-gray-100 text-gray-400 px-6 py-4 rounded-3xl flex items-center">
                                     <span className="text-[10px] uppercase font-black italic">No Min for CIA</span>
@@ -231,8 +241,8 @@ const Examination = () => {
                                 { title: "Practical", items: ["One Model", "Class Performance"], icon: <FaClipboardCheck /> },
                                 { title: "Project", items: ["Review I, II", "Outcome Assessment"], icon: <FaLayerGroup /> }
                             ].map((box, idx) => (
-                                <div key={idx} className="bg-white p-8 rounded-[35px] shadow-xl border-b-8 border-[#D4AF37] hover:bg-[#F5E6A1]/10 transition-all group">
-                                    <div className="text-[#D4AF37] text-4xl mb-4 group-hover:scale-110 transition-transform">
+                                <div key={idx} className="bg-white p-5 sm:p-8 rounded-[35px] shadow-xl border-b-8 border-[#D4AF37] hover:bg-[#F5E6A1]/10 transition-all group">
+                                    <div className="text-[#D4AF37] text-2xl sm:text-3xl md:text-4xl mb-4 group-hover:scale-110 transition-transform">
                                         {box.icon}
                                     </div>
                                     <h4 className="text-lg font-black text-gray-800 font-serif mb-4 italic uppercase tracking-tight">{box.title}</h4>

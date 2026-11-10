@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaChair, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { API_URL } from '../../config';
 
 const SeatAvailabilityTracker = () => {
     const [courses, setCourses] = useState([]);
@@ -9,7 +10,7 @@ const SeatAvailabilityTracker = () => {
     useEffect(() => {
         const fetchSeats = async () => {
             try {
-                const { data } = await axios.get('http://localhost:5000/api/courses');
+                const { data } = await axios.get(`${API_URL}/api/courses`);
                 setCourses(data);
             } catch (error) {
                 console.error("Error fetching seats:", error);

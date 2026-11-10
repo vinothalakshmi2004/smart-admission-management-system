@@ -28,6 +28,10 @@ const staffSchema = new mongoose.Schema({
         },
         default: 'staff',
     },
+    contactNumber: { type: String, trim: true },
+    department: { type: String, trim: true },
+    employeeId: { type: String, trim: true },
+    className: { type: String, trim: true },
     createdAt: {
         type: Date,
         default: Date.now,

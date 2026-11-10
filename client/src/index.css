@@ -88,21 +88,26 @@
 }
 
 /* Custom Scrollbar for Webkit */
-::-webkit-scrollbar {
-  width: 8px;
-}
+/* Maroon scrollbar only on mouse devices (laptop/desktop).
+   On phones/tablets a styled scrollbar takes 8px of width and lets the page pan sideways. */
+@media (hover: hover) and (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-primary;
-  border-radius: 4px;
-}
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary;
+    border-radius: 4px;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-secondary;
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary;
+  }
 }
 
 
@@ -192,4 +197,26 @@
 
 .why-card:hover p {
   color: white;
+}
+/* ── Mobile ── */
+/* iPhone Safari zooms into inputs smaller than 16px; keep form fields at 16px on phones */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Keep font sizes stable when an iPhone is rotated, and stop the page
+   from panning sideways on phones (set on html only so the sticky menu keeps working) */
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
 }

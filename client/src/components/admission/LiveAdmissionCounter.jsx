@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaGraduationCap, FaCheckCircle, FaUsers } from 'react-icons/fa';
+import { API_URL } from '../../config';
 
 const LiveAdmissionCounter = ({ horizontal }) => {
     const [count, setCount] = useState(0);
@@ -10,7 +11,7 @@ const LiveAdmissionCounter = ({ horizontal }) => {
     useEffect(() => {
         const fetchCount = async () => {
             try {
-                const { data } = await axios.get('http://localhost:5000/api/applications/stats/count');
+                const { data } = await axios.get(`${API_URL}/api/applications/stats/count`);
                 setCount(data.totalAdmissions || 0);
                 setLoading(false);
             } catch (error) {
@@ -54,15 +55,15 @@ const LiveAdmissionCounter = ({ horizontal }) => {
 
     if (horizontal) {
         return (
-            <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-2xl border border-gray-100 mt-12 animate-fadeIn max-w-2xl mx-auto flex items-center justify-center gap-8 relative overflow-hidden group">
+            <div className="bg-white p-8 md:p-10 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100 mt-12 animate-fadeIn max-w-2xl mx-auto flex items-center justify-center gap-8 relative overflow-hidden group">
                 <div className="absolute left-0 top-0 h-full w-2 bg-primary"></div>
                 <div className="bg-primary/10 p-5 rounded-3xl text-primary shadow-lg group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                    <FaGraduationCap className="text-4xl" />
+                    <FaGraduationCap className="text-2xl sm:text-3xl md:text-4xl" />
                 </div>
                 <div className="flex flex-col md:flex-row items-center gap-6">
                     <div className="text-center md:text-left">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-1">Live Enrollment Pulse</h4>
-                        <p className="text-4xl font-black text-gray-900 tracking-tighter italic">
+                        <p className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tighter italic">
                             {displayCount.toLocaleString()} <span className="text-primary not-italic">+</span>
                         </p>
                     </div>
@@ -79,14 +80,14 @@ const LiveAdmissionCounter = ({ horizontal }) => {
     }
 
     return (
-        <div className="bg-white p-8 rounded-[35px] shadow-2xl border border-gray-100 relative overflow-hidden group hover:border-primary/20 transition-all duration-500 animate-fadeIn">
+        <div className="bg-white p-5 sm:p-8 rounded-[35px] shadow-2xl border border-gray-100 relative overflow-hidden group hover:border-primary/20 transition-all duration-500 animate-fadeIn">
             {/* Background Decoration */}
             <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
 
             <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="bg-primary text-white p-4 rounded-2xl shadow-lg shadow-primary/20">
-                        <FaGraduationCap className="text-3xl" />
+                        <FaGraduationCap className="text-2xl md:text-3xl" />
                     </div>
                     <div>
                         <h3 className="text-gray-400 font-black uppercase tracking-widest text-[10px]">Registry Pulse</h3>
@@ -95,7 +96,7 @@ const LiveAdmissionCounter = ({ horizontal }) => {
                 </div>
 
                 <div className="mb-6">
-                    <div className="text-6xl font-black text-gray-900 tracking-tighter mb-2 flex items-baseline gap-2">
+                    <div className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 tracking-tighter mb-2 flex items-baseline gap-2">
                         {displayCount.toLocaleString()}
                         <span className="text-primary text-2xl animate-pulse">+</span>
                     </div>
